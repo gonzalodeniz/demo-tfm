@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alumnos-deployments
+  namespace: argocd   # donde está instalado ArgoCD
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'   # tu repo
+    targetRevision: main                                      # rama principal
+    path: deployments                                         # carpeta con los YAML de nginx
+  destination:
+    server: 'https://kubernetes.default.svc'                  # clúster destino
+    namespace: default                                        # los YAML decidirán el namespace real
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
