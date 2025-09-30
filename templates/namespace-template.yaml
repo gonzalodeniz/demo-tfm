@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: alumnos-{{alumno}}
+  name: alumno-{{alumno}}-{{id_alumno}}

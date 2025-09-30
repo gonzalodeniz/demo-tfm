@@ -1,16 +1,18 @@
 #!/bin/bash
-# Generate a namespace YAML file for each student listed in alumnos.txt
+# Generate namespace YAML files for each student listed in alumnos.txt (CSV format)
 # using namespace-template.yaml as a template.
 
 # Create output directory if it doesn't exist
-mkdir -p repo/namespaces
+mkdir -p namespaces
 
-# Read each line from alumnos.txt and create a namespace YAML file
-while read alumno; do
+# Read CSV file, skipping the header line
+tail -n +2 alumnos.txt | while IFS=',' read -r alumno id_alumno; do
   # Skip empty lines
   [ -z "$alumno" ] && continue
   
-  # Replace {{alumno}} in the template with the actual student name
-  sed "s/{{alumno}}/${alumno}/g" templates/namespace-template.yaml \
-    > "namespaces/alumno-${alumno}.yaml"
-done < alumnos.txt
+  # Replace {{alumno}} and {{id_alumno}} in the template with actual values
+  sed -e "s/{{alumno}}/${alumno}/g" \
+      -e "s/{{id_alumno}}/${id_alumno}/g" \
+      templates/namespace-template.yaml \
+    > "namespaces/alumno-${alumno}-${id_alumno}.yaml"
+done
