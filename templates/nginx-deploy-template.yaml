@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-{{alumno}}
+  namespace: alumno-{{alumno}}-{{id_alumno}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-{{alumno}}-{{id_alumno}}
+  template:
+    metadata:
+      labels:
+        app: nginx-{{alumno}}-{{id_alumno}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-{{alumno}}-{{id_alumno}}-svc
+  namespace: alumno-{{alumno}}-{{id_alumno}}
+spec:
+  selector:
+    app: nginx-{{alumno}}-{{id_alumno}}
+  ports:
+    - protocol: TCP
+      port: 80          # Puerto interno del servicio
+      targetPort: 80    # Puerto dentro del contenedor
+      nodePort: 3{{id_alumno}} # Puerto expuesto en el nodo (personalizable por alumno) Rango: 30000–32767.
+  type: NodePort
