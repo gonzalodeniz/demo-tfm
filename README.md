@@ -41,7 +41,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 Mostrar contraseña del usuario *admin* de ArgoCD
 ```
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode && echo
 ```
 
 ## Despliegues con ArgoCD
@@ -59,6 +59,34 @@ Construir manifiestos de los alumnos a partir de las plantillas
 ./crea-alumnos-deploy.sh
 ```
 
+## Comandos de verificación
+Ver los namespace en minikube
+```
+kubectl get namespaces
+```
 
+Borrar namespaces
+```
+kubectl delete namespace nombre-namespaces
+```
+
+Ver todos los objetos de un namespace
+```
+kubectl get all -n alumno-ana-0001
+```
+
+Ver el detalle de un servicio
+```
+kubectl get svc nginx-ana-0001-svc -n alumno-ana-0001 -o wide
+
+NAME                 TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE   SELECTOR
+nginx-ana-0001-svc   NodePort   10.101.135.83   <none>        80:30001/TCP   14m app=nginx-ana-0001
+```
+
+Ver la URL de un servicio y hacer túnel para acceder desde fuera del cluster al servicio
+```
+minikube service nginx-ana-0001-svc -n alumno-ana-0001 --url
+minikube tunnel
+```
 
 
