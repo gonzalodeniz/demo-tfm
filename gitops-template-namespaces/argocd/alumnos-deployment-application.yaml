@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'   # tu repo
     targetRevision: main                                      # rama principal
-    path: deployments                                         # carpeta con los YAML de nginx
+    path: gitops-template-namespaces/deployments                                         # carpeta con los YAML de nginx
   destination:
     server: 'https://kubernetes.default.svc'                  # clúster destino
     namespace: default                                        # los YAML decidirán el namespace real

@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'   # cambia por tu repo
     targetRevision: main                           # rama principal
-    path: networkpolicies                                # carpeta con los YAML
+    path: gitops-template-namespaces/networkpolicies                                # carpeta con los YAML
   destination:
     server: 'https://kubernetes.default.svc'       # clúster destino
     namespace: default
