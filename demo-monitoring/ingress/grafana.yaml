@@ -1,0 +1,22 @@
+# Recurso Ingress en Kubernetes para exponer Grafana externamente a través de un controlador Ingress (nginx) en el namespace demo-monitoring.
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: demo-monitoring
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "4m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: grafana.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000

@@ -1,0 +1,5 @@
+# Define un recurso Namespace en Kubernetes llamado demo-monitoring.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo-monitoring

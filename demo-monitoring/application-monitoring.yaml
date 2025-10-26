@@ -1,0 +1,24 @@
+# Este fichero YAML define una aplicación ArgoCD llamada demo-monitoring.
+# La aplicación apunta al repositorio demo-tfm en la rama main,
+# específicamente a la carpeta demo-monitoring.
+# La aplicación se desplegará en el namespace demo-monitoring del clúster Kubernetes.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-monitoring
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git' 
+    targetRevision: main
+    path: demo-monitoring
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo-monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
