@@ -79,6 +79,13 @@ tail -n +2 alumnos.txt | while IFS=',' read -r alumno id_alumno; do
     sed -e "s/{{alumno}}/${alumno}/g" \
         -e "s/{{id_alumno}}/${id_alumno}/g" \
         templates/grafana/deployment-template.yaml  > "grafana/deployments/alumno-${alumno}-${id_alumno}.yaml"
+        
+    # Grafana - services
+    echo "Generating Grafana-Service YAML files for ${alumno} (${id_alumno})..."
+    mkdir -p grafana/services    
+    sed -e "s/{{alumno}}/${alumno}/g" \
+        -e "s/{{id_alumno}}/${id_alumno}/g" \
+        templates/grafana/service-template.yaml  > "grafana/services/alumno-${alumno}-${id_alumno}.yaml"
 done
 echo "All monitoring YAML files generated successfully."
 exit 0
