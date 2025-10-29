@@ -30,5 +30,7 @@ rm -f grafana/pvcs/alumno-*.yaml
 rm -f grafana/secrets/alumno-*.yaml
 # Delete Grafana - Deployments
 rm -f grafana/deployments/alumno-*.yaml
+# Delete Grafana - Services
+rm -f grafana/services/alumno-*.yaml
 echo "All monitoring YAML files deleted successfully."
 exit 0
