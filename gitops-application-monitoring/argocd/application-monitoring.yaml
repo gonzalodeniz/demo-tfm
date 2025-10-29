@@ -15,7 +15,9 @@ spec:
     targetRevision: main                                      
     path: gitops-application-monitoring
     directory:
-      recurse: true                                         
+      recurse: true
+      exclude: |
+        templates/**
   destination:
     server: 'https://kubernetes.default.svc'                 
     namespace: default                                        

@@ -14,12 +14,11 @@ spec:
   selector: {app: grafana}
   type: NodePort
   ports:
-    - protocol: tcp
+    - protocol: TCP
       port: 3000        # Puerto interno del servicio
       targetPort: 3000  # Puerto dentro del contenedor
       nodePort: 30{{id_alumno}} # Puerto expuesto en el nodo (personalizable por alumno) Rango: 30000–32767.
   
-
 
 
 
