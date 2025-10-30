@@ -13,11 +13,9 @@ spec:
   source:
     repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'   
     targetRevision: main                                      
-    path: gitops-application-monitoring
+    path: gitops-application-monitoring/alumnos
     directory:
       recurse: true
-      exclude: |
-        templates/**
   destination:
     server: 'https://kubernetes.default.svc'                 
     namespace: default                                        
