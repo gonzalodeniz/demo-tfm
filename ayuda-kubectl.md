@@ -9,6 +9,12 @@ Calico permite definir políticas de red (NetworkPolicy) para controlar tráfico
 minikube start --cni=calico
 ```
 
+## Namespace
+Muestra todos los namespaces del cluster
+```
+kubectl get namespaces
+```
+
 ## Servicios
 
 Muestra información de los servicios
