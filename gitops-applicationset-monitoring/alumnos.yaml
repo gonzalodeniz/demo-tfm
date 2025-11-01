@@ -1,3 +1,2 @@
-alumnos:
-  - nombre: juan
-    id: 101
+- nombre: juan
+  id: 101
