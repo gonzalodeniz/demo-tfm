@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: alumno-{{ .Values.alumno }}-{{ .Values.id }}
+  labels:
+    alumno: "{{ .Values.alumno }}"
+    id: "{{ .Values.id }}"

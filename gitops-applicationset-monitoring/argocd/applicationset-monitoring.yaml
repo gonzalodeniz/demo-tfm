@@ -1,0 +1,39 @@
+# AplicaciónSet ArgoCD llamada alumnos-monitoring.
+#
+# La aplicación apunta al repositorio demo-tfm en la rama main,
+# específicamente a la carpeta gitops-application-monitoring.
+# La aplicación se desplegará en el namespace default del clúster Kubernetes.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: namespaces-alumnos
+spec:
+  generators:
+    - git:
+        repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+        revision: main
+        files:
+          - path: gitops-applicationset-monitoring/alumnos.yaml
+  template:
+    metadata:
+      name: '{{nombre}}-ns'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+        targetRevision: main
+        # Ruta donde están las plantillas de namespace
+        path: templates/namespace
+        helm:
+          parameters:
+            - name: alumno
+              value: '{{nombre}}'
+            - name: id
+              value: '{{id}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      syncPolicy:
+        automated: {}
+        syncOptions:
+          - CreateNamespace=true
