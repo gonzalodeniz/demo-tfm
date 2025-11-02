@@ -23,7 +23,7 @@ spec:
         repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
         targetRevision: main
         # Ruta donde están las plantillas de namespace
-        path: templates/namespace
+        path:   gitops-applicationset-monitoring/helm-chart/namespace
         helm:
           parameters:
             - name: alumno
