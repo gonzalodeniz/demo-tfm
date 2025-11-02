@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: namespaces-alumnos
+spec:
+  generators:
+    - git:
+        repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+        revision: main
+        files:
+          - path: gitops-applicationset-kustomize-monitoring/alumnos.yaml
+  template:
+    metadata:
+      name: '{{nombre}}-monitoring'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+        targetRevision: main
+        path: gitops-applicationset-kustomize-monitoring/base
+        kustomize:
+          namePrefix: '{{nombre}}-'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+        syncOptions:
+          - CreateNamespace=true
