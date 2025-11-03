@@ -2,6 +2,3 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: ns  # El prefijo se añadirá automáticamente (juan-ns, maria-ns, etc.)
-  labels:
-    alumno: "{{nombre}}"
-    id: "{{id}}"

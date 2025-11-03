@@ -2,6 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: namespaces-alumnos
+  namespace: argocd
 spec:
   generators:
     - git:
@@ -12,6 +13,9 @@ spec:
   template:
     metadata:
       name: '{{nombre}}-monitoring-application'
+      labels:
+        alumno: '{{nombre}}'
+        alumno-id: '{{id}}'
     spec:
       project: default
       source:
@@ -20,12 +24,12 @@ spec:
         path: gitops-applicationset-kustomize-monitoring/base
         kustomize:
           namePrefix: '{{nombre}}-'
-          nameSuffix: ''
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{nombre}}-ns' 
+        namespace: '{{nombre}}-ns'
       syncPolicy:
         automated:
           prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true
