@@ -20,13 +20,12 @@ spec:
         path: gitops-applicationset-kustomize-monitoring/base
         kustomize:
           namePrefix: '{{nombre}}-'
+          nameSuffix: ''
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{nombre}}-ns'
+        namespace: '{{nombre}}-ns' 
       syncPolicy:
         automated:
           prune: true
         syncOptions:
           - CreateNamespace=true
-        destination:
-          namespace: '{{nombre}}-ns'
