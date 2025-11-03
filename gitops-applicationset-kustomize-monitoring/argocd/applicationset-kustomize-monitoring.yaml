@@ -11,7 +11,7 @@ spec:
           - path: gitops-applicationset-kustomize-monitoring/alumnos.yaml
   template:
     metadata:
-      name: '{{nombre}}-monitoring'
+      name: '{{nombre}}-monitoring-application'
     spec:
       project: default
       source:
@@ -28,3 +28,5 @@ spec:
           prune: true
         syncOptions:
           - CreateNamespace=true
+        destination:
+          namespace: '{{nombre}}-ns'
