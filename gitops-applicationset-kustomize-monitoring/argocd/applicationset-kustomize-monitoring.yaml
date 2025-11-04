@@ -9,7 +9,7 @@ spec:
         repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
         revision: main
         files:
-          - path: gitops-applicationset-kustomize-monitoring/alumnos.yaml
+          - path: 'gitops-applicationset-kustomize-monitoring/alumnos.yaml'
   template:
     metadata:
       name: '{{nombre}}-monitoring-application'
@@ -22,8 +22,7 @@ spec:
         repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
         targetRevision: main
         path: gitops-applicationset-kustomize-monitoring/base
-        kustomize:
-          namePrefix: '{{nombre}}-'
+        kustomize: {}
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{nombre}}-ns'
