@@ -10,6 +10,9 @@ spec:
         revision: main
         files:
           - path: 'gitops-applicationset-kustomize-monitoring/alumnos.yaml'
+    - list:
+        # Toma la lista del fichero Git y la convierte a elementos
+        elementsYaml: '{{ .nombre | toJson }}'
   template:
     metadata:
       name: '{{nombre}}-monitoring-application'
