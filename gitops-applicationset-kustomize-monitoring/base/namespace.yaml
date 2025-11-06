@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  # Este nombre es un placeholder.
-  # Será sobrescrito por el 'destination.namespace' de Argo CD.
-  name: placeholder-ns
