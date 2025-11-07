@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - nginx-deployment.yaml
   - nginx-service.yaml
+  - prometheus-deployment.yaml
 labels:
   - pairs:
       app.kubernetes.io/name: nginx
