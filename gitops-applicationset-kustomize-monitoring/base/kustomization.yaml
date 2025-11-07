@@ -3,10 +3,9 @@ kind: Kustomization
 resources:
   - nginx-deployment.yaml
   - nginx-service.yaml
-  - prometheus-deployment.yaml
+  - prometheus/prometheus-deployment.yaml
 labels:
   - pairs:
-      app.kubernetes.io/name: nginx
-      app.kubernetes.io/component: web
+      app.kubernetes.io/managed-by: kustomize
     includeSelectors: true
     includeTemplates: true
