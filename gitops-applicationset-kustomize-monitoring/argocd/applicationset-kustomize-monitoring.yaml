@@ -16,23 +16,26 @@ spec:
           - path: gitops-applicationset-kustomize-monitoring/alumnos.yaml
   template:
     metadata:
-      name: '{{nombre}}-ns'
+      name: 'monitoring-{{nombre}}-{{id}}'
     spec:
       project: default
-      source:
-        repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
-        targetRevision: main
-        # Ruta donde están las plantillas de namespace
-        path: gitops-applicationset-kustomize-monitoring/helm-chart
-        helm:
-          parameters:
-            - name: alumno
-              value: '{{nombre}}'
-            - name: id
-              value: '{{id}}'
+      sources:
+        - repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+          targetRevision: main
+          # Ruta donde están las plantillas de namespace
+          path: gitops-applicationset-kustomize-monitoring/helm-chart
+          helm:
+            parameters:
+              - name: alumno
+                value: '{{nombre}}'
+              - name: id
+                value: '{{id}}'
+        - repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+          targetRevision: main
+          path: gitops-applicationset-kustomize-monitoring/overlays
       destination:
         server: https://kubernetes.default.svc
-        namespace: argocd
+        namespace: monitoring-{{nombre}}-{{id}}
       syncPolicy:
         automated:
           prune: true
