@@ -5,6 +5,10 @@ resources:
   - prometheus/prometheus-pvc.yaml
   - prometheus/prometheus-deployment.yaml
   - prometheus/prometheus-service.yaml
+  - grafana/grafana-configmap.yaml
+  - grafana/grafana-pvc.yaml
+  - grafana/grafana-deployment.yaml
+  - grafana/grafana-service.yaml
 labels:
   - pairs:
       app.kubernetes.io/managed-by: kustomize
