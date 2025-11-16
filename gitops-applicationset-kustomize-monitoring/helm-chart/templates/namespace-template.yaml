@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: monitoring-{{ .Values.alumno }}-{{ .Values.id }}
+  name: {{ .Values.namespace }}
   labels:
     alumno: "{{ .Values.alumno }}"
     id: "{{ .Values.id }}"

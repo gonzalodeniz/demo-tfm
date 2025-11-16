@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-same-namespace
-  namespace: monitoring-{{.Values.alumno}}-{{.Values.id}}
+  namespace: {{ .Values.namespace }}
 spec:
   podSelector: {}
   policyTypes:

@@ -1,4 +1,4 @@
-# Recurso ConfigMap en Kubernetes llamado grafana-datasource dentro del namespace demo-monitoring.
+# Recurso ConfigMap en Kubernetes llamado grafana-datasource dentro del namespace {{namespace}}.
 # El ConfigMap contiene la configuración de la fuente de datos para Grafana en la clave datasource.yml.
 # Esta configuración indica que Grafana debe conectarse a Prometheus
 # (usando la URL http://prometheus.monitoring.svc:9090) como fuente de datos principal
@@ -8,7 +8,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-configmap
-  namespace: monitoring-{{alumno}}-{{id_alumno}}
+  namespace: {{namespace}}
 data:
   datasource.yml: |
     apiVersion: 1
@@ -16,5 +16,5 @@ data:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus-service.monitoring-{{alumno}}-{{id_alumno}}.svc:9090
+        url: http://prometheus-service.{{namespace}}.svc:9090
         isDefault: true

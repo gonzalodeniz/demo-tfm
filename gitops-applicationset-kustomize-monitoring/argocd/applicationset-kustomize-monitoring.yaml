@@ -30,6 +30,8 @@ spec:
                 value: '{{nombre}}'
               - name: id
                 value: '{{id}}'
+              - name: namespace
+                value: 'monitoring-{{nombre}}-{{id}}'
         - repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
           targetRevision: main
           path: gitops-applicationset-kustomize-monitoring/overlays

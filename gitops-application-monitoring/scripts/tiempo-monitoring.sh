@@ -97,6 +97,8 @@ cd "${REPO_DIR}" >/dev/null 2>&1
 
 script_start=$(date +%s)
 
+run_with_timer "bash scripts/crea-monitoring.sh" bash scripts/crea-monitoring.sh
+
 run_with_timer "make run" make run
 run_with_timer "make sincro" make sincro
 

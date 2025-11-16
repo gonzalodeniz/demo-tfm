@@ -1,4 +1,4 @@
-# Recurso Deployment en Kubernetes para desplegar Prometheus en el namespace demo-monitoring.
+# Recurso Deployment en Kubernetes para desplegar Prometheus en el namespace {{ .Values.namespace }}.
 #
 # El deployment crea un pod con un contenedor basado en la imagen prom/prometheus:latest.
 # El contenedor expone el puerto 9090 y utiliza dos volúmenes:
@@ -9,7 +9,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus
-  namespace: monitoring-{{.Values.alumno}}-{{.Values.id}}
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:

@@ -5,30 +5,44 @@ Explica los pasos para desplegar contenedores en kubernetes a partir de git util
 
 ```
 .
+├── Makefile
 ├── README.md
+├── alumnos
+│   ├── grafana
+│   ├── namespaces
+│   ├── networkpolicies
+│   └── prometheus
 ├── alumnos.txt
 ├── argocd
-│   ├── alumnos-deployment-application.yaml
-│   └── alumnos-namespace-application.yaml
-├── crea-alumnos-deploy.sh
-├── crea-alumnos-namespace.sh
-├── deployments
-│   ├── alumno-ana-0001.yaml
-│   └── alumno-juan-0002.yaml
-├── namespaces
-│   ├── alumno-ana-0001.yaml
-│   └── alumno-juan-0002.yaml
+│   └── application-monitoring.yaml
+├── scripts
+│   ├── crea-monitoring.sh
+│   └── delete-monitoring.sh
 └── templates
+    ├── grafana
     ├── namespace-template.yaml
-    └── nginx-deploy-template.yaml
+    ├── networkpolicies-template.yaml
+    └── prometheus
 
 ```
 donde:
-* alumnos.txt: Fichero csv con el nombre del alumno y su id
-* argocd: Manifiesto para crear las aplicaciones en ArgoCD y despliegue en Kubernetes
-* crea-alumnos-deploy.sh: Crea los manifiestos deployment de los alumnos a partir de plantillas
-* crea-alumnos-namesplaces.sh: Crea los manifiestos namespaces de los alumnos a partir de plantillas
-* templates: plantillas para crear los manifiestos de kubernetes
+* `alumnos.txt`: fichero CSV con el nombre del alumno y su id.
+* `argocd`: manifiesto Application de ArgoCD que sincroniza todos los recursos generados.
+* `scripts/crea-monitoring.sh`: genera todos los manifiestos a partir de las plantillas.
+* `scripts/delete-monitoring.sh`: elimina los manifiestos generados.
+* `templates`: plantillas parametrizadas de Kubernetes (Grafana, Prometheus, NetworkPolicies y Namespace).
+
+## Formato de namespaces
+
+Independientemente de si se despliega con una Application, un ApplicationSet-Helm o un ApplicationSet-Kustomize,
+el namespace de cada alumno sigue el mismo patrón:
+
+```
+monitoring-<nombre-normalizado>-<id-normalizado>
+```
+
+Los scripts normalizan el nombre (minúsculas y `-` en lugar de espacios) y conservan el identificador (por ejemplo `001`),
+de modo que casos como `Ana,001` generan siempre el namespace `monitoring-ana-001`.
 
 
 
@@ -75,19 +89,22 @@ argocd account update-password --account admin --current-password xxx --new-pass
 
 
 ## Despliegues con ArgoCD
-Subir una nueva aplicación
+Desplegar la aplicación que orquesta todo el stack:
 
 ```
-kubectl apply -f argocd/alumnos-namespace-application.yaml 
-kubectl apply -f argocd/alumnos-deployment-application.yaml 
-kubectl apply -f argocd/alumnos-networkpolicies-application.yaml 
+kubectl apply -f argocd/application-monitoring.yaml
 ```
 
-Construir manifiestos de los alumnos a partir de las plantillas
+Construir o actualizar los manifiestos a partir de las plantillas:
 
 ```
-./crea-alumnos-namespace.sh
-./crea-alumnos-deploy.sh
+bash scripts/crea-monitoring.sh
+```
+
+Borrar los manifiestos generados si es necesario:
+
+```
+bash scripts/delete-monitoring.sh
 ```
 
 ## Comandos de verificación
@@ -103,21 +120,19 @@ kubectl delete namespace nombre-namespaces
 
 Ver todos los objetos de un namespace
 ```
-kubectl get all -n alumno-ana-0001
+kubectl get all -n monitoring-ana-001
 ```
 
 Ver el detalle de un servicio
 ```
-kubectl get svc nginx-ana-0001-svc -n alumno-ana-0001 -o wide
+kubectl get svc grafana-service -n monitoring-ana-001 -o wide
 
-NAME                 TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE   SELECTOR
-nginx-ana-0001-svc   NodePort   10.101.135.83   <none>        80:30001/TCP   14m app=nginx-ana-0001
+NAME              TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE   SELECTOR
+grafana-service   NodePort   10.101.135.83   <none>        3000:30000/TCP   14m app=grafana
 ```
 
 Ver la URL de un servicio y hacer túnel para acceder desde fuera del cluster al servicio
 ```
-minikube service nginx-ana-0001-svc -n alumno-ana-0001 --url
+minikube service grafana-service -n monitoring-ana-001 --url
 minikube tunnel
 ```
-
-

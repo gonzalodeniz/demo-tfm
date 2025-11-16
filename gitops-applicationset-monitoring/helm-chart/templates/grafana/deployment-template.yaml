@@ -1,9 +1,9 @@
-# Recurso Deployment en Kubernetes para desplegar Grafana en el namespace monitoring-<alumno>-<id_alumno>
+# Recurso Deployment en Kubernetes para desplegar Grafana en el namespace {{ .Values.namespace }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana-deployment
-  namespace: monitoring-{{.Values.alumno}}-{{.Values.id}}
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:

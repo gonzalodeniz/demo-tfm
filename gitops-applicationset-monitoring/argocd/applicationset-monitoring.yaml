@@ -16,7 +16,7 @@ spec:
           - path: gitops-applicationset-monitoring/alumnos.yaml
   template:
     metadata:
-      name: '{{nombre}}-ns'
+      name: 'monitoring-{{nombre}}-{{id}}'
     spec:
       project: default
       source:
@@ -30,9 +30,11 @@ spec:
               value: '{{nombre}}'
             - name: id
               value: '{{id}}'
+            - name: namespace
+              value: 'monitoring-{{nombre}}-{{id}}'
       destination:
         server: https://kubernetes.default.svc
-        namespace: argocd
+        namespace: monitoring-{{nombre}}-{{id}}
       syncPolicy:
         automated:
           prune: true

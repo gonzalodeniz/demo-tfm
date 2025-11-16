@@ -11,26 +11,26 @@ echo "Deleting monitoring YAML files for students..."
 # fi
 
 # Delete namespaces
-rm -f alumnos/namespaces/alumno-*.yaml
+rm -f alumnos/namespaces/*.yaml
 # Delete networkpolicies
-rm -f alumnos/networkpolicies/alumno-*.yaml
+rm -f alumnos/networkpolicies/*.yaml
 # Delete Prometheus - ConfigMaps
-rm -f alumnos/prometheus/configmaps/alumno-*.yaml
+rm -f alumnos/prometheus/configmaps/*.yaml
 # Delete Prometheus - PVCs
-rm -f alumnos/prometheus/pvcs/alumno-*.yaml
+rm -f alumnos/prometheus/pvcs/*.yaml
 # Delete Prometheus - Deployments
-rm -f alumnos/prometheus/deployments/alumno-*.yaml
+rm -f alumnos/prometheus/deployments/*.yaml
 # Delete Prometheus - Services
-rm -f alumnos/prometheus/services/alumno-*.yaml
+rm -f alumnos/prometheus/services/*.yaml
 # Delete Grafana - ConfigMaps
-rm -f alumnos/grafana/configmaps/alumno-*.yaml
+rm -f alumnos/grafana/configmaps/*.yaml
 # Delete Grafana - PVCs
-rm -f alumnos/grafana/pvcs/alumno-*.yaml
+rm -f alumnos/grafana/pvcs/*.yaml
 # Delete Grafana - Secrets
-rm -f alumnos/grafana/secrets/alumno-*.yaml
+rm -f alumnos/grafana/secrets/*.yaml
 # Delete Grafana - Deployments
-rm -f alumnos/grafana/deployments/alumno-*.yaml
+rm -f alumnos/grafana/deployments/*.yaml
 # Delete Grafana - Services
-rm -f alumnos/grafana/services/alumno-*.yaml
+rm -f alumnos/grafana/services/*.yaml
 echo "All monitoring YAML files deleted successfully."
 exit 0

@@ -1,4 +1,4 @@
-# Recurso Service en Kubernetes para exponer Prometheus dentro del namespace demo-monitoring.
+# Recurso Service en Kubernetes para exponer Prometheus dentro del namespace {{ .Values.namespace }}.
 #
 # El servicio es de tipo ClusterIP y selecciona los pods con la etiqueta app: prometheus.
 # Expone el puerto 9090 para acceder a la interfaz web de Prometheus.
@@ -7,7 +7,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus-service
-  namespace: monitoring-{{.Values.alumno}}-{{.Values.id}}
+  namespace: {{ .Values.namespace }}
 spec:
   type: NodePort
   selector: {app: prometheus}

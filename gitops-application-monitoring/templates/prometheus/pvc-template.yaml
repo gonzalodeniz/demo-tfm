@@ -1,12 +1,12 @@
 # Recurso PersistentVolumeClaim (PVC) en Kubernetes llamado prometheus-data dentro 
-# del namespace monitoring-{{alumno}}-{{id_alumno}}.
+# del namespace {{namespace}}.
 # El PVC solicita 50 MiB de almacenamiento con modo de acceso ReadWriteOnce, 
 # lo que significa que el volumen puede ser montado en modo lectura/escritura por un solo nodo.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: prometheus-data
-  namespace: monitoring-{{alumno}}-{{id_alumno}}
+  namespace: {{namespace}}
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:
