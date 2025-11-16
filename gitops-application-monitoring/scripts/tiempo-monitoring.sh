@@ -97,10 +97,7 @@ cd "${REPO_DIR}" >/dev/null 2>&1
 
 script_start=$(date +%s)
 
-run_with_timer "bash scripts/crea-monitoring.sh" bash scripts/crea-monitoring.sh
-run_with_timer "bash scripts/push-alumnos.sh" bash scripts/push-alumnos.sh
 run_with_timer "make run" make run
-run_with_timer "make sincro" make sincro
 
 log "Verificando despliegue de la aplicación ${APP_NAME}..."
 wait_for_pods
