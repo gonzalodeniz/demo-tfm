@@ -10,6 +10,9 @@ NAMESPACE_PREFIX="${NAMESPACE_PREFIX:-monitoring}"
 POD_TIMEOUT="${POD_TIMEOUT:-600}"
 POD_CHECK_INTERVAL="${POD_CHECK_INTERVAL:-5}"
 REQUIRED_APPS=("grafana" "prometheus")
+LOG_FILE="${LOG_FILE:-${REPO_DIR}/tiempo-monitoring.csv}"
+
+LAST_NAMESPACE_COUNT=0
 
 log() {
   printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
@@ -77,6 +80,7 @@ wait_for_pods() {
     done
 
     if (( all_ready == 1 )); then
+      LAST_NAMESPACE_COUNT=${#target_namespaces[@]}
       log "Grafana y Prometheus están en ejecución en todos los namespaces objetivo."
       return 0
     fi
@@ -100,3 +104,20 @@ wait_for_pods
 
 total_duration=$(( $(date +%s) - script_start ))
 log "Tiempo total desde el inicio del script hasta que Prometheus y Grafana están listos: ${total_duration} segundos."
+
+append_log_entry() {
+  local timestamp process_type namespace_count duration
+  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  process_type="application"
+  namespace_count=$1
+  duration=$2
+
+  mkdir -p "$(dirname "${LOG_FILE}")"
+  if [[ ! -f "${LOG_FILE}" ]]; then
+    echo "timestamp,tipo,namespaces,duracion_segundos" > "${LOG_FILE}"
+  fi
+
+  echo "${timestamp},${process_type},${namespace_count},${duration}" >> "${LOG_FILE}"
+}
+
+append_log_entry "${LAST_NAMESPACE_COUNT}" "${total_duration}"
