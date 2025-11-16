@@ -3,12 +3,12 @@
 # This script deletes all generated monitoring-related YAML files for each student.
 set -e
 echo "Deleting monitoring YAML files for students..."
-echo "Sure you want to proceed? This action cannot be undone. (y/n)"
-read -r confirmation
-if [[ "$confirmation" != "y" ]]; then
-  echo "Deletion cancelled."
-  exit 0
-fi
+# echo "Sure you want to proceed? This action cannot be undone. (y/n)"
+# read -r confirmation
+# if [[ "$confirmation" != "y" ]]; then
+#   echo "Deletion cancelled."
+#   exit 0
+# fi
 
 # Delete namespaces
 rm -f alumnos/namespaces/alumno-*.yaml
