@@ -13,7 +13,7 @@ delete:
 	bash scripts/delete-monitoring.sh
 	sleep 2
 	bash scripts/push-alumnos.sh
-	argocd app sync alumnos-monitoring
+	argocd app sync alumnos-monitoring --prune
 	sleep 5
 	kubectl delete application alumnos-monitoring -n argocd
 	
