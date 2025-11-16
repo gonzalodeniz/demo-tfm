@@ -1,4 +1,4 @@
-.PHONY: run sincro delete_all
+.PHONY: run sincro delete
 
 run:
 	bash scripts/crea-monitoring.sh
@@ -6,5 +6,6 @@ run:
 sincro:
 	kubectl apply -f argocd/application-monitoring.yaml -n argocd
 
-delete_all:
+delete:
 	bash scripts/delete-monitoring.sh
+	kubectl delete application alumnos-monitoring -n argocd
