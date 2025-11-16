@@ -1,0 +1,23 @@
+
+# Recurso Service en Kubernetes para exponer Grafana dentro del namespace monitoring-helen-008.
+#
+# El servicio es de tipo NodePort y selecciona los pods con la etiqueta app: grafana.
+# Expone el puerto 30008 para acceder a la interfaz web de Grafana.
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+  namespace: monitoring-helen-008
+spec:
+  selector: {app: grafana}
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 3000        # Puerto interno del servicio
+      targetPort: 3000  # Puerto dentro del contenedor
+      nodePort: 30008 # Puerto expuesto en el nodo (personalizable por alumno) Rango: 30000–32767.
+  
+
+

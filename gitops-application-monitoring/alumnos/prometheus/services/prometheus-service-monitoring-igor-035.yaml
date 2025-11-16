@@ -1,0 +1,18 @@
+# Recurso Service en Kubernetes para exponer Prometheus dentro del namespace monitoring-igor-035.
+#
+# El servicio es de tipo ClusterIP y selecciona los pods con la etiqueta app: prometheus.
+# Expone el puerto 9090 para acceder a la interfaz web de Prometheus.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: monitoring-igor-035
+spec:
+  type: NodePort
+  selector: {app: prometheus}
+  ports:
+    - name: tcp
+      port: 9090
+      targetPort: 9090
+      nodePort: 31035 
