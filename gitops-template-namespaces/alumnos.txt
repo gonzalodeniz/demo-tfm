@@ -1,3 +1,0 @@
-# alumno,id_alumno
-ana,0001
-juan,0002
