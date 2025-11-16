@@ -8,7 +8,8 @@ NAMESPACE_PREFIX="${NAMESPACE_PREFIX:-monitoring}"
 POD_TIMEOUT="${POD_TIMEOUT:-600}"
 POD_CHECK_INTERVAL="${POD_CHECK_INTERVAL:-5}"
 REQUIRED_APPS=("grafana" "prometheus")
-LOG_FILE="${LOG_FILE:-${REPO_DIR}/tiempo-applicationset-kustomize-monitoring.csv}"
+GLOBAL_LOG_FILE="/home/gdeniz/Workspaces/formacion/unir/tfm/demo-tfm/repo/tiempos-ejecuciones.csv"
+LOG_FILE="${LOG_FILE:-${GLOBAL_LOG_FILE}}"
 PROCESS_TYPE="applicationset-kusto"
 
 LAST_NAMESPACE_COUNT=0
