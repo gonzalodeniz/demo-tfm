@@ -9,3 +9,4 @@ sincro:
 delete:
 	bash scripts/delete-monitoring.sh
 	kubectl delete application alumnos-monitoring -n argocd
+	bash scripts/push-alumnos.sh
