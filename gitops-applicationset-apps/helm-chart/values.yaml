@@ -1,0 +1,6 @@
+alumno: "default"
+grafana: false
+prometheus: false
+
+grafanaImage: "grafana/grafana-oss:latest"
+prometheusImage: "prometheus/prometheus-oss:latest"
