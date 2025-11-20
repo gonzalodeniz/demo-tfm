@@ -11,7 +11,7 @@ spec:
           - path: gitops-applicationset-apps/alumnos.yaml
   template:
     metadata:
-      name: '{{ printf "monitoring-%s-%v" (regexReplaceAll "[^a-z0-9-]" (lower nombre) "-") id }}'
+      name: 'monitoring-{{nombre}}-{{id}}'
     spec:
       project: default
       source:
@@ -19,13 +19,16 @@ spec:
         targetRevision: main
         path: gitops-applicationset-apps/helm-chart
         helm:
-          values: |
-            alumno: "{{nombre}}"
-            prometheus: {{prometheus}}
-            grafana: {{grafana}}
+          parameters:
+            - name: alumno
+              value: '{{nombre}}'
+            - name: id
+              value: '{{id}}'
+            - name: namespace
+              value: 'monitoring-{{nombre}}-{{id}}'
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{ printf "alumno-%s-%v" (regexReplaceAll "[^a-z0-9-]" (lower nombre) "-") id }}'
+        namespace: 'monitoring-{{nombre}}-{{id}'
       syncPolicy:
         automated:
           selfHeal: true
