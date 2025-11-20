@@ -1,4 +1,4 @@
-- nombre: "Ana"
+- nombre: "ana"
   id: "001"
   prometheus: true
   grafana: false
