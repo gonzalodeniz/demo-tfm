@@ -28,7 +28,7 @@ spec:
               value: 'monitoring-{{nombre}}-{{id}}'
       destination:
         server: https://kubernetes.default.svc
-        namespace: 'monitoring-{{nombre}}-{{id}'
+        namespace: 'monitoring-{{nombre}}-{{id}}'
       syncPolicy:
         automated:
           selfHeal: true
