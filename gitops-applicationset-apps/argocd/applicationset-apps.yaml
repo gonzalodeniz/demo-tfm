@@ -11,7 +11,7 @@ spec:
           - path: gitops-applicationset-apps/alumnos.yaml
   template:
     metadata:
-      name: 'monitoring-{{nombre}}-{{id}}'
+      name: '{{ printf "monitoring-%s-%v" (regexReplaceAll "[^a-z0-9-]" (lower nombre) "-") id }}'
     spec:
       project: default
       source:
@@ -25,7 +25,7 @@ spec:
             grafana: {{grafana}}
       destination:
         server: https://kubernetes.default.svc
-        namespace: alumno-{{nombre}}-{{id}}
+        namespace: '{{ printf "alumno-%s-%v" (regexReplaceAll "[^a-z0-9-]" (lower nombre) "-") id }}'
       syncPolicy:
         automated:
           selfHeal: true

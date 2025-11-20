@@ -1,9 +1,4 @@
-nombre: "Ana"
-id: "001"
-prometheus: true
-grafana: false
----
-nombre: "Bob"
-id: "002"
-prometheus: false
-grafana: true
+- nombre: "Ana"
+  id: "001"
+  prometheus: true
+  grafana: false
