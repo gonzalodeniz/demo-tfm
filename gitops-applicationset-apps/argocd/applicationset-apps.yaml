@@ -27,9 +27,9 @@ spec:
             - name: namespace
               value: 'monitoring-{{nombre}}-{{id}}'
             - name: grafana.enabled
-              value: '{{grafana}}'
+              value: '{{ grafana | toString | lower }}'
             - name: prometheus.enabled
-              value: '{{prometheus}}'
+              value: '{{ prometheus | toString | lower }}'
       destination:
         server: https://kubernetes.default.svc
         namespace: 'monitoring-{{nombre}}-{{id}}'

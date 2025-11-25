@@ -1,4 +1,4 @@
-{{- if .Values.grafana.enabled }}
+{{- if eq (include "monitoring.boolEnabled" .Values.grafana.enabled) "true" }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
