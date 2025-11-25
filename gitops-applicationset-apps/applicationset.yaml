@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: students-appset
+  namespace: argocd
+spec:
+  # 1. GENERADOR: Lee el archivo desde el repositorio Git
+  generators:
+    - git:
+        repoURL: https://github.com/gonzalodeniz/demo-tfm
+        revision: HEAD
+        files:
+          - path: "gitops-applicationset-apps/alumnos.yaml"
+  
+  # 2. PLANTILLA: Configuración de la Application para cada alumno
+  template:
+    metadata:
+      # El nombre de la App en ArgoCD será: alumno-juan-apps
+      name: '{{students.nombre}}-apps' 
+    spec:
+      project: default
+      
+      # Origen de los manifiestos (nuestra carpeta 'base')
+      source:
+        repoURL: https://github.com/gonzalodeniz/demo-tfm
+        targetRevision: HEAD
+        path: gitops-applicationset-apps/base
+        
+        # Pasamos los datos del alumno a las plantillas como parámetros de Helm
+        helm:
+          parameters:
+            - name: nombre
+              value: '{{students.nombre}}'
+            - name: id
+              value: '{{students.id}}'
+          # Pasamos la lista de apps como valores YAML directos
+          values: |
+            apps: {{ students.apps | toJson }}
+
+      # Destino del despliegue
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{students.nombre}}'
+      
+      # Políticas de sincronización automática
+      syncPolicy:
+        automated:
+          prune: true    # Borra recursos si se quitan de la lista
+          selfHeal: true # Corrige cambios manuales (Drift)
+        syncOptions:
+          - CreateNamespace=true # Asegura que Argo pueda gestionar el NS

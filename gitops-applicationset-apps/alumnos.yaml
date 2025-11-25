@@ -1,4 +1,15 @@
-- nombre: "maria"
-  id: "001"
-  prometheus: true
-  grafana: false
+students:
+  - nombre: alumno-juan
+    id: "001"
+    apps: 
+      - nginx
+      - apache
+
+  - nombre: alumno-maria
+    id: "002"
+    apps:
+      - nginx
+
+  - nombre: alumno-pedro
+    id: "003"
+    apps: [] # Solo creará el namespace
