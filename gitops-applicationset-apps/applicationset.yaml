@@ -13,7 +13,8 @@ spec:
   
   template:
     metadata:
-      name: '{{.nombre}}-apps' 
+      # CORREGIDO: Sin el punto inicial. Debe ser {{nombre}}
+      name: '{{nombre}}-apps' 
     spec:
       project: default
       source:
@@ -24,17 +25,18 @@ spec:
         helm:
           parameters:
             - name: nombre
-              value: '{{.nombre}}'
+              value: '{{nombre}}'
             - name: id
-              value: '{{.id}}'
+              value: '{{id}}'
           
-          # SOLUCIÓN AQUÍ: Usamos valuesObject en lugar de values string
-          valuesObject:
-            apps: '{{.apps}}'
+          # Usamos 'values' (string) con toJson. 
+          # Es el método más robusto para listas en esta versión de ArgoCD.
+          values: |
+            apps: {{ apps | toJson }}
 
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{.nombre}}'
+        namespace: '{{nombre}}'
       
       syncPolicy:
         automated:
