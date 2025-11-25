@@ -1,0 +1,22 @@
+alumno: ""
+id: ""
+namespace: ""
+
+grafana:
+  enabled: false
+  image: grafana/grafana:10.2.3
+  adminUser: admin
+  adminPassword: admin
+  service:
+    port: 80
+    targetPort: 3000
+  persistence:
+    size: 2Gi
+
+prometheus:
+  enabled: false
+  image: prom/prometheus:latest
+  service:
+    port: 9090
+  persistence:
+    size: 2Gi
