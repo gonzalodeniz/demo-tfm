@@ -13,8 +13,7 @@ spec:
   
   template:
     metadata:
-      # CORREGIDO: Acceso directo a la variable sin prefijo 'students.'
-      name: '{{nombre}}-apps' 
+      name: '{{.nombre}}-apps' 
     spec:
       project: default
       source:
@@ -24,18 +23,18 @@ spec:
         
         helm:
           parameters:
-            # CORREGIDO: Variables directas
             - name: nombre
-              value: '{{nombre}}'
+              value: '{{.nombre}}'
             - name: id
-              value: '{{id}}'
-          # Pasamos la lista de apps tal cual
-          values: |
-            apps: {{ apps | toJson }}
+              value: '{{.id}}'
+          
+          # SOLUCIÓN AQUÍ: Usamos valuesObject en lugar de values string
+          valuesObject:
+            apps: '{{.apps}}'
 
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{nombre}}'
+        namespace: '{{.nombre}}'
       
       syncPolicy:
         automated:
