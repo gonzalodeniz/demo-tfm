@@ -13,7 +13,6 @@ spec:
   
   template:
     metadata:
-      # CORREGIDO: Sin el punto inicial. Debe ser {{nombre}}
       name: '{{nombre}}-apps' 
     spec:
       project: default
@@ -29,10 +28,13 @@ spec:
             - name: id
               value: '{{id}}'
           
-          # Usamos 'values' (string) con toJson. 
-          # Es el método más robusto para listas en esta versión de ArgoCD.
+          # SOLUCIÓN ROBUSTA: Generamos el YAML línea a línea manualmente.
+          # Esto evita errores de parseo de JSON o cadenas.
           values: |
-            apps: {{ apps | toJson }}
+            apps:
+            {{- range $app := .apps }}
+              - {{ $app }}
+            {{- end }}
 
       destination:
         server: https://kubernetes.default.svc
