@@ -1,15 +1,14 @@
-students:
-  - nombre: alumno-juan
-    id: "001"
-    apps: 
-      - nginx
-      - apache
+- nombre: alumno-juan
+  id: "001"
+  apps: 
+    - nginx
+    - apache
 
-  - nombre: alumno-maria
-    id: "002"
-    apps:
-      - nginx
+- nombre: alumno-maria
+  id: "002"
+  apps:
+    - nginx
 
-  - nombre: alumno-pedro
-    id: "003"
-    apps: [] # Solo creará el namespace
+- nombre: alumno-pedro
+  id: "003"
+  apps: []
