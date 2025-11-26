@@ -2,7 +2,7 @@
 
 sincro:
 	bash scripts/push-alumnos.sh
-	kubectl apply -f argocd/applicationset-apps.yaml -n argocd
+	kubectl apply -f applicationset.yaml -n argocd
 
 delete:
-	kubectl delete applicationset namespaces-alumnos -n argocd
+	kubectl delete applicationset students-appset -n argocd

@@ -1,11 +1,3 @@
 # alumno,id_alumno
 ana,001
 bruno,002
-carla,003
-diana,004
-elias,005
-pablo,006
-maria,007
-luis,008
-antonio,009
-carolina,010

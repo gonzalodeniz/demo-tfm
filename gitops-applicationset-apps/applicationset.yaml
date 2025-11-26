@@ -4,41 +4,46 @@ metadata:
   name: students-appset
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
   generators:
     - git:
         repoURL: https://github.com/gonzalodeniz/demo-tfm
         revision: HEAD
         files:
-          - path: "gitops-applicationset-apps/alumnos.yaml"
-  
+          - path: gitops-applicationset-apps/alumnos.yaml
+
   template:
     metadata:
-      name: '{{nombre}}-apps' 
+      name: '{{.nombre}}-apps'
+      labels:
+        student-id: '{{.id}}'
     spec:
       project: default
       source:
         repoURL: https://github.com/gonzalodeniz/demo-tfm
         targetRevision: HEAD
         path: gitops-applicationset-apps/base
-        
         helm:
+          releaseName: '{{.nombre}}'
           parameters:
             - name: nombre
-              value: '{{nombre}}'
+              value: '{{.nombre}}'
             - name: id
-              value: '{{id}}'
-          
-          # SOLUCIÓN ROBUSTA: Generamos el YAML línea a línea manualmente.
-          # Esto evita errores de parseo de JSON o cadenas.
+              value: '{{.id}}'
           values: |
+            {{- $apps := default (list) (get . "apps") }}
             apps:
-            {{- range $app := .apps }}
-              - {{ $app }}
+            {{- range $apps }}
+              - {{ . }}
+            {{- else }}
+              []
             {{- end }}
 
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{nombre}}'
+        namespace: '{{.nombre}}'
       
       syncPolicy:
         automated:
@@ -46,3 +51,4 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+          - PruneLast=true
