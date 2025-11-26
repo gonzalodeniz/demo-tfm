@@ -1,14 +1,13 @@
 - nombre: alumno-juan
   id: "001"
   apps: 
-    - nginx
-    - apache
+    - prometheus
+    - grafana
 
 - nombre: alumno-maria
   id: "002"
   apps:
-    - nginx
-    - apache
+    - prometheus
 
 - nombre: alumno-pedro
   id: "003"
