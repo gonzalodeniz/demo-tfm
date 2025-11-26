@@ -8,6 +8,7 @@
   id: "002"
   apps:
     - nginx
+    - apache
 
 - nombre: alumno-pedro
   id: "003"
