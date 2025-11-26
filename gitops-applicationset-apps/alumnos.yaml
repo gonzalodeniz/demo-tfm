@@ -12,3 +12,10 @@
 - nombre: alumno-pedro
   id: "003"
   apps: []
+
+- nombre: alumno-lucia
+  id: "004"
+  apps:
+    - grafana
+    - prometheus
+    
