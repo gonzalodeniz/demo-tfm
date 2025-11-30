@@ -9,11 +9,45 @@ metadata:
   name: gitea-data
   namespace: gitea
 spec:
-  accessModes:
-    - ReadWriteOnce
+  accessModes: ["ReadWriteOnce"]
   resources:
     requests:
       storage: 5Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitea-appini
+  namespace: gitea
+data:
+  app.ini: |
+    APP_NAME = Gitea
+    RUN_MODE = prod
+    RUN_USER = git
+
+    [database]
+    DB_TYPE = sqlite3
+    PATH = /data/gitea/gitea.db
+
+    [repository]
+    ROOT = /data/git/repositories
+
+    [lfs]
+    STORAGE_TYPE = local
+    PATH = /data/git/lfs
+
+    [server]
+    PROTOCOL = http
+    DOMAIN = localhost
+    HTTP_PORT = 3000
+    ROOT_URL = http://localhost:3000/
+
+    [log]
+    ROOT_PATH = /data/gitea/log
+
+    [security]
+    INSTALL_LOCK = true
+    SECRET_KEY_URI = file:/data/gitea/secret_key
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,6 +66,64 @@ spec:
     spec:
       securityContext:
         fsGroup: 1000
+      initContainers:
+        - name: init-gitea-config
+          image: busybox:1.36
+          command: ["sh", "-ceu"]
+          args:
+            - |
+              # crea estructura y app.ini en el PVC
+              if [ ! -f /data/gitea/conf/app.ini ]; then
+                # Agregamos /data/git/.ssh a la creación de directorios
+                mkdir -p /data/gitea/conf /data/gitea/log /data/git/repositories /data/git/lfs /data/git/.ssh
+
+                # genera SECRET_KEY persistente
+                if [ ! -f /data/gitea/secret_key ]; then
+                  tr -dc 'A-Za-z0-9' </dev/urandom | head -c 64 > /data/gitea/secret_key
+                  echo >> /data/gitea/secret_key
+                fi
+
+                cp /config/app.ini /data/gitea/conf/app.ini
+              fi
+              
+              # Aseguramos que .ssh exista siempre, incluso si app.ini ya existía
+              mkdir -p /data/git/.ssh
+
+              # Permisos estrictos para SSH (necesario para que SSH funcione y Gitea no falle)
+              chmod 700 /data/git/.ssh
+              
+              # Permisos recursivos
+              chown -R 1000:1000 /data/gitea /data/git
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: appini
+              mountPath: /config
+              readOnly: true
+        - name: init-gitea-admin
+          image: docker.gitea.com/gitea:1.25.2
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-ceu"]
+          args:
+            - |
+              # Crea usuario admin si no existe
+              gitea admin user create \
+                --username admin \
+                --password admin123 \
+                --email admin@example.com \
+                --admin \
+                --config /data/gitea/conf/app.ini \
+                --must-change-password=false || true
+          env:
+            - name: USER_UID
+              value: "1000"
+            - name: USER_GID
+              value: "1000"
+            - name: GITEA_CUSTOM
+              value: /data/gitea
+          volumeMounts:
+            - name: data
+              mountPath: /data
       containers:
         - name: gitea
           image: docker.gitea.com/gitea:1.25.2
@@ -44,12 +136,9 @@ spec:
               value: "1000"
             - name: USER_GID
               value: "1000"
-            - name: GITEA__database__DB_TYPE
-              value: "sqlite3"
-            - name: GITEA__database__PATH
-              value: "/data/gitea/gitea.db"
-            - name: GITEA__server__HTTP_PORT
-              value: "3000"
+            # Fuerza que el "custom path" sea /data/gitea => lee /data/gitea/conf/app.ini
+            - name: GITEA_CUSTOM
+              value: /data/gitea
           volumeMounts:
             - name: data
               mountPath: /data
@@ -66,6 +155,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: gitea-data
+        - name: appini
+          configMap:
+            name: gitea-appini
 ---
 apiVersion: v1
 kind: Service
