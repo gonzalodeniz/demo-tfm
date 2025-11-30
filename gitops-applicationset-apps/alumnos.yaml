@@ -4,18 +4,18 @@
     - prometheus
     - grafana
 
-- nombre: alumno-maria
-  id: "002"
-  apps:
-    - prometheus
+# - nombre: alumno-maria
+#   id: "002"
+#   apps:
+#     - prometheus
 
-- nombre: alumno-pedro
-  id: "003"
-  apps: []
+# - nombre: alumno-pedro
+#   id: "003"
+#   apps: []
 
-- nombre: alumno-lucia
-  id: "004"
-  apps:
-    - grafana
-    - prometheus
+# - nombre: alumno-lucia
+#   id: "004"
+#   apps:
+#     - grafana
+#     - prometheus
     
