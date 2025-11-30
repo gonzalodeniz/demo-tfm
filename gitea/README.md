@@ -19,7 +19,7 @@ kubectl get pods,svc,pvc -n gitea
 ## Credenciales por defecto
 - Usuario admin: `admin`
 - Contraseña: `admin123`
-Se crean automáticamente en el `initContainer` del Deployment (puedes cambiarlos editando `gitea.yaml` en la sección `init-gitea-admin`).
+Se crean automáticamente en el `initContainer` del Deployment; si el usuario ya existe se fuerza la contraseña indicada. Puedes cambiarlos editando `gitea.yaml` en la sección `Secret gitea-admin` o `init-gitea-admin`.
 
 ## Acceso web (port-forward)
 Forward del servicio al puerto local 3000:
