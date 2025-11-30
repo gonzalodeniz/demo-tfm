@@ -9,7 +9,7 @@ spec:
     - missingkey=error
   generators:
     - git:
-        repoURL: https://github.com/gonzalodeniz/demo-tfm
+        repoURL: http://gitea.gitea:3000/admin/demo-tfm.git
         revision: HEAD
         files:
           - path: gitops-applicationset-apps/alumnos.yaml
@@ -22,7 +22,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/gonzalodeniz/demo-tfm
+        repoURL: http://gitea.gitea:3000/admin/demo-tfm.git
         targetRevision: HEAD
         path: gitops-applicationset-apps/base
         helm:
