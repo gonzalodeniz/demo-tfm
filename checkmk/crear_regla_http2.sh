@@ -16,9 +16,17 @@ CONTENT_TYPE="Content-Type: application/json"
 ACCEPT_HEADER="Accept: application/json"
 
 # --- DATOS DE LA MONITORIZACIÓN ---
-TARGET_HOST_NAME="minikube"
-TARGET_URL="https://www.google.com"
-SERVICE_NAME="Check HTTP Home"
+# Parametrización obligatoria vía argumentos o variables de entorno.
+TARGET_HOST_NAME="${1:-${TARGET_HOST_NAME:-}}"
+TARGET_URL="${2:-${TARGET_URL:-}}"
+SERVICE_NAME="${3:-${SERVICE_NAME:-}}"
+
+if [[ -z "$TARGET_HOST_NAME" || -z "$TARGET_URL" || -z "$SERVICE_NAME" ]]; then
+  echo "Uso: $0 <TARGET_HOST_NAME> <TARGET_URL> <SERVICE_NAME>"
+  echo "También puedes exportar TARGET_HOST_NAME, TARGET_URL y SERVICE_NAME."
+  echo "Ejemplo: TARGET_HOST_NAME=host1 TARGET_URL=https://example.com SERVICE_NAME=\"Check Example\" $0"
+  exit 1
+fi
 
 echo "--- [Paso 1] Creando Regla HTTP para $TARGET_HOST_NAME ---"
 
