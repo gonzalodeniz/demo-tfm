@@ -4,10 +4,10 @@
     - prometheus
     - grafana
 
-# - nombre: alumno-maria
-#   id: "002"
-#   apps:
-#     - prometheus
+- nombre: alumno-maria
+  id: "002"
+  apps:
+    - prometheus
 
 # - nombre: alumno-pedro
 #   id: "003"
