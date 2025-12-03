@@ -22,6 +22,6 @@ git add -A "${TARGET_DIR}"
 commit_ts=$(date +%Y%m%d-%H%M)
 commit_msg="alumno-${commit_ts}"
 git commit -m "${commit_msg}"
-git push
+git push gitea
 
 echo "Changes under ${TARGET_DIR} pushed with commit ${commit_msg}."
