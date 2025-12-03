@@ -23,7 +23,7 @@
   id: "004"
   apps:
     - grafana
-    - prometheus 
+    - prometheus
   check-http:
     - http://grafana-service.alumno-lucia.svc.cluster.local:3000
     - http://prometheus-service.alumno-lucia.svc.cluster.local:9090
