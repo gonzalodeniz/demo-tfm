@@ -48,6 +48,7 @@ Si `apps` y `check-http` no tienen la misma longitud, el proceso se detiene con 
   2) aplica `applicationset.yaml` en el namespace `argocd`; 
   3) recrea reglas HTTPv2 en Checkmk en base a `alumnos.yaml`.
 - `make delete`: elimina el ApplicationSet `students-appset` en el namespace `argocd`.
+- `make expose`: lanza `kubectl port-forward` en segundo plano para gitea (3000), checkmk (5000, 6557) y argocd (8080). Registra PIDs en `/tmp/port-forward-*.pid` y logs en `/tmp/port-forward-*.log`; deténlos con `kill $(cat /tmp/port-forward-*.pid)` o matando los PIDs listados.
 
 ## Flujos principales
 ### Alta o cambio de alumno/app
