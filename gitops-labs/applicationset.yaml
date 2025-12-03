@@ -13,7 +13,7 @@ spec:
         # repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'  
         revision: HEAD
         files:
-          - path: gitops-applicationset-apps/alumnos.yaml
+          - path: gitops-labs/alumnos.yaml
 
   template:
     metadata:
@@ -26,7 +26,7 @@ spec:
         repoURL: http://gitea.gitea:3000/admin/demo-tfm.git
         # repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'  
         targetRevision: HEAD
-        path: gitops-applicationset-apps/base
+        path: gitops-labs/base
         helm:
           releaseName: '{{.nombre}}'
           parameters:

@@ -116,10 +116,26 @@ ACTIVATE_RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST "$ACTIVATE_URL
 
 ACTIVATE_STATUS=$(echo "$ACTIVATE_RESPONSE" | tr -d '\n' | sed -e 's/.*HTTP_CODE://')
 
-if [[ "$ACTIVATE_STATUS" -eq 200 ]] || [[ "$ACTIVATE_STATUS" -eq 201 ]] || [[ "$ACTIVATE_STATUS" -eq 204 ]]; then
-    echo "✅ Cambios activados correctamente. Revisa el panel de Checkmk."
-else
-    echo "❌ Error activando cambios (Código $ACTIVATE_STATUS):"
-    echo "$ACTIVATE_RESPONSE" | sed -e 's/HTTP_CODE:.*//g'
+if [[ "$ACTIVATE_STATUS" -eq 412 ]]; then
+  echo "⚠️  ETag no coincide (412). Reintentando activación con comodín..."
+  ACTIVATE_RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST "$ACTIVATE_URL" \
+    -H "$ACCEPT_HEADER" \
+    -H "$CONTENT_TYPE" \
+    -H "$AUTH_HEADER" \
+    -H "If-Match: *" \
+    -d "{
+          \"redirect\": false,
+          \"force_foreign_changes\": false,
+          \"sites\": [\"$CMK_SITE\"]
+        }")
+  ACTIVATE_STATUS=$(echo "$ACTIVATE_RESPONSE" | tr -d '\n' | sed -e 's/.*HTTP_CODE://')
 fi
-exit 0
+
+if [[ "$ACTIVATE_STATUS" -eq 200 ]] || [[ "$ACTIVATE_STATUS" -eq 201 ]] || [[ "$ACTIVATE_STATUS" -eq 204 ]]; then
+  echo "✅ Cambios activados correctamente. Revisa el panel de Checkmk."
+  exit 0
+else
+  echo "❌ Error activando cambios (Código $ACTIVATE_STATUS):"
+  echo "$ACTIVATE_RESPONSE" | sed -e 's/HTTP_CODE:.*//g'
+  exit 1
+fi

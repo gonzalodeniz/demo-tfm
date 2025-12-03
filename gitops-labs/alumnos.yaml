@@ -14,10 +14,10 @@
   check-http:
     - http://prometheus-service.alumno-maria.svc.cluster.local:9090
 
-# - nombre: alumno-pedro
-#   id: "003"
-#   apps: []
-#   check-http: []
+- nombre: alumno-pedro
+  id: "003"
+  apps: []
+  check-http: []
 
 - nombre: alumno-lucia
   id: "004"
