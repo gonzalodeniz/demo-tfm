@@ -10,10 +10,11 @@ metadata:
 spec:
   generators:
     - git:
-        repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+        # repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+        repoURL: 'http://gitea.gitea:3000/admin/demo-tfm.git'
         revision: main
         files:
-          - path: gitops-applicationset-kustomize-monitoring/alumnos.yaml
+          - path: gitops-archived/gitops-applicationset-kustomize/alumnos.yaml
   template:
     metadata:
       name: 'monitoring-{{nombre}}-{{id}}'
@@ -23,7 +24,7 @@ spec:
         - repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
           targetRevision: main
           # Ruta donde están las plantillas de namespace
-          path: gitops-applicationset-kustomize-monitoring/helm-chart
+          path: gitops-archived/gitops-applicationset-kustomize/helm-chart
           helm:
             parameters:
               - name: alumno
@@ -32,9 +33,10 @@ spec:
                 value: '{{id}}'
               - name: namespace
                 value: 'monitoring-{{nombre}}-{{id}}'
-        - repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+        # - repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'
+        - repoURL: 'http://gitea.gitea:3000/admin/demo-tfm.git'
           targetRevision: main
-          path: gitops-applicationset-kustomize-monitoring/overlays
+          path: gitops-archived/gitops-applicationset-kustomize/overlays
       destination:
         server: https://kubernetes.default.svc
         namespace: monitoring-{{nombre}}-{{id}}
