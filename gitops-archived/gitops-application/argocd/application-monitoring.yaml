@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'   
     targetRevision: main                                      
-    path: gitops-application-monitoring/alumnos
+    path: gitops-archived/gitops-application/alumnos
     directory:
       recurse: true
   destination:
