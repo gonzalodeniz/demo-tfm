@@ -22,6 +22,6 @@ git add -A "${ALUMNOS_FILE}"
 commit_ts=$(date +%Y%m%d-%H%M)
 commit_msg="alumno-${commit_ts}"
 git commit -m "${commit_msg}"
-git push
+git push gitea main
 
 echo "Changes for ${ALUMNOS_FILE} pushed with commit ${commit_msg}."
