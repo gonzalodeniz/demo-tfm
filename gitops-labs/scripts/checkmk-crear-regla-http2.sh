@@ -8,6 +8,7 @@ CMK_SITE="cmk"
 CMK_SERVER="127.0.0.1:5000"
 API_USER="cmkadmin"
 API_SECRET="admin123"
+SKIP_ACTIVATE="${SKIP_ACTIVATE:-0}"
 
 # URL Base
 API_URL="http://$CMK_SERVER/$CMK_SITE/check_mk/api/1.0"
@@ -86,6 +87,12 @@ else
 fi
 
 echo -e "\n--- [Paso 2] Activando Cambios ---"
+
+# Permite omitir la activación cuando se use en lotes.
+if [[ "$SKIP_ACTIVATE" == "1" || "$SKIP_ACTIVATE" == "true" ]]; then
+  echo "Saltando activación (SKIP_ACTIVATE=$SKIP_ACTIVATE)."
+  exit 0
+fi
 
 # 2.1) Obtener ETag de pending changes (viene en cabeceras)
 PENDING_CHANGES_URL="$API_URL/domain-types/activation_run/collections/pending_changes"

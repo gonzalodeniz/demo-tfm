@@ -7,16 +7,22 @@ Replica el comportamiento del script Bash monitoriza-laboratorios.sh.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
-def run_command(command: List[str], cwd: Path | None = None) -> None:
+def run_command(command: List[str], cwd: Path | None = None, env: Optional[dict] = None) -> None:
     """Execute a command, exiting with the same code on failure (set -e behavior)."""
     try:
-        subprocess.run(command, check=True, cwd=str(cwd) if cwd else None)
+        subprocess.run(
+            command,
+            check=True,
+            cwd=str(cwd) if cwd else None,
+            env=env,
+        )
     except subprocess.CalledProcessError as exc:
         sys.exit(exc.returncode)
 
@@ -102,6 +108,9 @@ def main() -> int:
         return 0
 
     print("--- [Paso 3] Creando reglas nuevas ---")
+    env_skip_activate = os.environ.copy()
+    env_skip_activate["SKIP_ACTIVATE"] = "1"
+
     for url, service_name in rules:
         print(f"Creando regla: {service_name} -> {url}")
         run_command(
@@ -110,8 +119,12 @@ def main() -> int:
                 target_host_name,
                 url,
                 service_name,
-            ]
+            ],
+            env=env_skip_activate,
         )
+
+    print("--- [Paso 4] Activando cambios pendientes ---")
+    run_command([str(checkmk_dir / "checkmk-activar-cambios.sh")])
 
     print("Proceso completado.")
     return 0
