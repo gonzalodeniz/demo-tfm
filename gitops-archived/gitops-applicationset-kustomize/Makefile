@@ -2,7 +2,7 @@
 
 help:
 	@echo "Opciones disponibles:"
-	@echo "  make sincro  - Push de alumnos.yaml y aplica el ApplicationSet de monitoring."
+	@echo "  make sincro  - Push de alumnos.yaml y aplica el ApplicationSet kustomize."
 	@echo "  make delete  - Elimina el ApplicationSet namespaces-alumnos en argocd."
 	@echo "  make expose  - Port-forward de gitea (3000) y argocd (8080) en segundo plano."
 	@echo "  make expose-service-grafana    - URL de grafana-service (monitoring-ana-001) via minikube."
