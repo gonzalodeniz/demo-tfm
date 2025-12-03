@@ -11,7 +11,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'   
+    #repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'   
+    repoURL: 'http://gitea.gitea:3000/admin/demo-tfm.git'
     targetRevision: main                                      
     path: gitops-archived/gitops-application/alumnos
     directory:

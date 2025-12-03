@@ -26,11 +26,20 @@ Explica los pasos para desplegar contenedores en kubernetes a partir de git util
 
 ```
 donde:
-* `alumnos.txt`: fichero CSV con el nombre del alumno y su id.
-* `argocd`: manifiesto Application de ArgoCD que sincroniza todos los recursos generados.
-* `scripts/crea-monitoring.sh`: genera todos los manifiestos a partir de las plantillas.
-* `scripts/delete-monitoring.sh`: elimina los manifiestos generados.
-* `templates`: plantillas parametrizadas de Kubernetes (Grafana, Prometheus, NetworkPolicies y Namespace).
+- `alumnos.txt`: fichero CSV con el nombre del alumno y su id.
+- `argocd`: manifiesto Application de ArgoCD que sincroniza todos los recursos generados.
+- `scripts/crea-monitoring.sh`: genera todos los manifiestos a partir de las plantillas.
+- `scripts/delete-monitoring.sh`: elimina los manifiestos generados.
+- `templates`: plantillas parametrizadas de Kubernetes (Grafana, Prometheus, NetworkPolicies y Namespace).
+
+## Makefile (atajos)
+- `make help`: muestra las opciones disponibles.
+- `make run`: crea monitorización, hace push de alumnos y lanza `sincro`.
+- `make sincro`: aplica `argocd/application-monitoring.yaml` en el namespace `argocd`.
+- `make delete`: borra monitorización y sincroniza la eliminación, luego elimina la Application.
+- `make expose`: port-forward en segundo plano de gitea (3000) y argocd (8080→443); PIDs y logs en `/tmp/port-forward-*.{pid,log}`.
+- `make expose-service-grafana`: abre `grafana-service` en `monitoring-ana-001` vía `minikube service`.
+- `make expose-service-prometheus`: abre `prometheus-service` en `monitoring-ana-001` vía `minikube service`.
 
 ## Formato de namespaces
 

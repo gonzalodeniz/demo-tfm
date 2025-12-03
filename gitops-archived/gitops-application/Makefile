@@ -1,4 +1,4 @@
-.PHONY: help run sincro delete expose
+.PHONY: help run sincro delete expose expose-service-grafana expose-service-prometheus
 
 help:
 	@echo "Opciones disponibles:"
@@ -6,6 +6,8 @@ help:
 	@echo "  make sincro  - Aplica la application-monitoring en el namespace argocd."
 	@echo "  make delete  - Borra monitorización y sincroniza eliminación."
 	@echo "  make expose  - Port-forward de gitea (3000) y argocd (8080) en segundo plano."
+	@echo "  make expose-service-grafana    - Abre grafana-service en minikube (monitoring-ana-001)."
+	@echo "  make expose-service-prometheus - Abre prometheus-service en minikube (monitoring-ana-001)."
 
 run:
 	bash scripts/crea-monitoring.sh
@@ -32,4 +34,9 @@ expose:
 	  echo "PIDs: gitea=$$(cat /tmp/port-forward-gitea.pid) argocd=$$(cat /tmp/port-forward-argocd.pid)"; \
 	  echo "Detén con: kill $$(cat /tmp/port-forward-gitea.pid) $$(cat /tmp/port-forward-argocd.pid)"; \
 	'
-	
+
+expose-service-grafana:
+	minikube service grafana-service -n monitoring-ana-001 --url
+
+expose-service-prometheus:
+	minikube service prometheus-service -n monitoring-ana-001 --url
