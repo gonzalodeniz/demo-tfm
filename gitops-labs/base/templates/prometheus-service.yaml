@@ -1,0 +1,16 @@
+{{- if has "prometheus" .Values.apps }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: {{ .Values.nombre }}
+spec:
+  type: NodePort
+  selector:
+    app: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: 9090
+      nodePort: {{ printf "31%s" .Values.id | int }}
+{{- end }}

@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: student-labs-appset
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - git:
+        repoURL: http://gitea.gitea:3000/admin/demo-tfm.git
+        # repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'  
+        revision: HEAD
+        files:
+          - path: gitops-applicationset-apps/alumnos.yaml
+
+  template:
+    metadata:
+      name: '{{.nombre}}-apps'
+      labels:
+        student-id: '{{.id}}'
+    spec:
+      project: default
+      source:
+        repoURL: http://gitea.gitea:3000/admin/demo-tfm.git
+        # repoURL: 'https://github.com/gonzalodeniz/demo-tfm.git'  
+        targetRevision: HEAD
+        path: gitops-applicationset-apps/base
+        helm:
+          releaseName: '{{.nombre}}'
+          parameters:
+            - name: nombre
+              value: '{{.nombre}}'
+            - name: id
+              value: '{{.id}}'
+          values: |
+            {{- $apps := default (list) (get . "apps") }}
+            apps:
+            {{- range $apps }}
+              - {{ . }}
+            {{- else }}
+              []
+            {{- end }}
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{.nombre}}'
+      
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PruneLast=true
