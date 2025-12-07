@@ -1,1 +1,3 @@
 *.csv
+aws/aws/
+aws/gitops-labs-eks

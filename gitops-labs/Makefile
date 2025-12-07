@@ -21,6 +21,10 @@ expose:
 	  nohup kubectl port-forward -n gitea svc/gitea 3000:3000 >/tmp/port-forward-gitea.log 2>&1 & echo $$! >/tmp/port-forward-gitea.pid; \
 	  nohup kubectl port-forward -n checkmk svc/checkmk 5000:5000 6557:6557 >/tmp/port-forward-checkmk.log 2>&1 & echo $$! >/tmp/port-forward-checkmk.pid; \
 	  nohup kubectl port-forward -n argocd svc/argocd-server 8080:443 >/tmp/port-forward-argocd.log 2>&1 & echo $$! >/tmp/port-forward-argocd.pid; \
+	  echo "Servicios expuestos:"; \
+	  echo "  gitea    -> http://localhost:3000/"; \
+	  echo "  checkmk  -> http://localhost:5000/ (livestatus en 6557/tcp)"; \
+	  echo "  argocd   -> http://localhost:8080/"; \
 	  echo "PIDs: gitea=$$(cat /tmp/port-forward-gitea.pid) checkmk=$$(cat /tmp/port-forward-checkmk.pid) argocd=$$(cat /tmp/port-forward-argocd.pid)"; \
 	  echo "Detén con: kill $$(cat /tmp/port-forward-gitea.pid) $$(cat /tmp/port-forward-checkmk.pid) $$(cat /tmp/port-forward-argocd.pid)"; \
 	'
