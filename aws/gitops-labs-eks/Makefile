@@ -14,7 +14,8 @@ help:
 
 sincro:
 	bash scripts/push-alumnos.sh
-	envsubst < applicationset.yaml | kubectl apply -f - -n argocd
+	# Cargamos .env (set -a exporta las variables automáticamente) antes de envsubst
+	@bash -c 'set -a && . ./.env && set +a && envsubst < applicationset.yaml | kubectl apply -f - -n argocd'
 	python3 scripts/monitoriza-laboratorios.py
 
 delete:
