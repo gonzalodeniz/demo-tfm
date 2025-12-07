@@ -16,11 +16,11 @@
   id: "003"
   apps: []
   check-http: []
-- nombre: alumno-lucia
-  id: "004"
-  apps:
-    - grafana
-    - prometheus
-  check-http:
-    - http://grafana-service.alumno-lucia.svc.cluster.local:3000
-    - http://prometheus-service.alumno-lucia.svc.cluster.local:9090 
+# - nombre: alumno-lucia
+#   id: "004"
+#   apps:
+#     - grafana
+#     - prometheus
+#   check-http:
+#     - http://grafana-service.alumno-lucia.svc.cluster.local:3000
+#     - http://prometheus-service.alumno-lucia.svc.cluster.local:9090 
