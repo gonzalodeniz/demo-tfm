@@ -9,10 +9,10 @@ spec:
     - missingkey=error
   generators:
     - git:
-        repoURL: ${GITEA_REPO_URL}
+        repoURL: http://a918d57187f9347289c750a4d75c510e-320216334.us-east-1.elb.amazonaws.com/admin/demo-tfm.git
         revision: HEAD
         files:
-          - path: ${GITOPS_BASE_PATH}/alumnos.yaml
+          - path: aws/gitops-labs-eks/alumnos.yaml
 
   template:
     metadata:
@@ -22,9 +22,9 @@ spec:
     spec:
       project: default
       source:
-        repoURL: ${GITEA_REPO_URL}
+        repoURL: http://a918d57187f9347289c750a4d75c510e-320216334.us-east-1.elb.amazonaws.com/admin/demo-tfm.git
         targetRevision: HEAD
-        path: ${GITOPS_BASE_PATH}/base
+        path: aws/gitops-labs-eks/base
         helm:
           releaseName: '{{.nombre}}'
           parameters:
