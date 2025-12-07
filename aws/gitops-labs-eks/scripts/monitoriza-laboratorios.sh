@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHECKMK_DIR="$SCRIPT_DIR"
 ALUMNOS_FILE="$SCRIPT_DIR/../alumnos.yaml"
-TARGET_HOST_NAME="minikube"
+TARGET_HOST_NAME="${TARGET_HOST_NAME:-${CHECKMK_TARGET_HOST:-minikube}}"
 
 echo "--- [Paso 1] Borrando reglas existentes ---"
 "$CHECKMK_DIR/checkmk-borrar-reglas-http2.sh"

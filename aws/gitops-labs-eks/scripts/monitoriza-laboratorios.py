@@ -95,7 +95,11 @@ def main() -> int:
     script_dir = Path(__file__).resolve().parent
     checkmk_dir = script_dir
     alumnos_file = script_dir.parent / "alumnos.yaml"
-    target_host_name = "minikube"
+    target_host_name = (
+        os.environ.get("TARGET_HOST_NAME")
+        or os.environ.get("CHECKMK_TARGET_HOST")
+        or "minikube"
+    )
 
     print("--- [Paso 1] Borrando reglas existentes ---")
     run_command([str(checkmk_dir / "checkmk-borrar-reglas-http2.sh")])

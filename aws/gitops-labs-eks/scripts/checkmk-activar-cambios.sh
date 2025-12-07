@@ -4,12 +4,13 @@
 set -euo pipefail
 
 # --- CONFIGURACIÓN ---
-CMK_SITE="cmk"
-CMK_SERVER="127.0.0.1:5000"
-API_USER="cmkadmin"
-API_SECRET="admin123"
+CMK_BASE_URL="${CMK_BASE_URL:-${CHECKMK_URL:-http://127.0.0.1:5000/}}"
+CMK_BASE_URL="${CMK_BASE_URL%/}"
+CMK_SITE="${CMK_SITE:-${CHECKMK_SITE:-cmk}}"
+API_USER="${API_USER:-${CHECKMK_API_USER:-cmkadmin}}"
+API_SECRET="${API_SECRET:-${CHECKMK_API_SECRET:-admin123}}"
 
-API_URL="http://$CMK_SERVER/$CMK_SITE/check_mk/api/1.0"
+API_URL="$CMK_BASE_URL/$CMK_SITE/check_mk/api/1.0"
 AUTH_HEADER="Authorization: Bearer $API_USER $API_SECRET"
 ACCEPT_HEADER="Accept: application/json"
 CONTENT_TYPE="Content-Type: application/json"
