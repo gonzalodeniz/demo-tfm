@@ -14,8 +14,7 @@ help:
 
 sincro:
 	bash scripts/push-alumnos.sh
-	# Cargamos .env (set -a exporta las variables automáticamente) antes de envsubst
-	@bash -c 'set -a && . ./.env && set +a && envsubst < applicationset.yaml | kubectl apply -f - -n argocd'
+	@bash -c "set -a && source .env && set +a && envsubst '\$$GITEA_REPO_URL \$$GITOPS_BASE_PATH' < applicationset-env.yaml | kubectl apply -f - -n argocd"
 	python3 scripts/monitoriza-laboratorios.py
 
 delete:

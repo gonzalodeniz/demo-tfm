@@ -1,6 +1,10 @@
 #!/bin/bash
 # Activa cambios pendientes en Checkmk (HTTP API v1) con fallback de ETag.
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+if [[ -f "$ROOT_DIR/.env" ]]; then set -a; . "$ROOT_DIR/.env"; set +a; fi
+
 set -euo pipefail
 
 # --- CONFIGURACIÓN ---

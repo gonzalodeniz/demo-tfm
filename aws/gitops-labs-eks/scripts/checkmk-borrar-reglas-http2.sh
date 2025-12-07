@@ -1,6 +1,10 @@
 #!/bin/bash
 # Elimina todas las reglas del ruleset active_checks:httpv2 y aplica cambios en Checkmk.
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+if [[ -f "$ROOT_DIR/.env" ]]; then set -a; . "$ROOT_DIR/.env"; set +a; fi
+
 set -euo pipefail
 
 # --- CONFIGURACIÓN ---

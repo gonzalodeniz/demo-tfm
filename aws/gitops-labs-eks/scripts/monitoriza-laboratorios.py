@@ -27,6 +27,20 @@ def run_command(command: List[str], cwd: Path | None = None, env: Optional[dict]
         sys.exit(exc.returncode)
 
 
+def load_env_file(path: Path) -> dict:
+    """Load a simple KEY=VALUE .env file into a dict."""
+    if not path.exists():
+        return {}
+    env_data: dict = {}
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        env_data[key.strip()] = value.strip()
+    return env_data
+
+
 def load_rules(alumnos_path: Path) -> List[Tuple[str, str]]:
     """
     Parse alumnos.yaml and produce a list of (url, service_name) tuples.
@@ -95,28 +109,34 @@ def main() -> int:
     script_dir = Path(__file__).resolve().parent
     checkmk_dir = script_dir
     alumnos_file = script_dir.parent / "alumnos.yaml"
+    dotenv_path = script_dir.parent / ".env"
+    base_env = os.environ.copy()
+    base_env.update(load_env_file(dotenv_path))
     target_host_name = (
-        os.environ.get("TARGET_HOST_NAME")
-        or os.environ.get("CHECKMK_TARGET_HOST")
+        base_env.get("CHECKMK_HOST_NAME")
+        or base_env.get("CHECKMK_TARGET_HOST")
         or "minikube"
     )
 
-    print("--- [Paso 1] Borrando reglas existentes ---")
-    run_command([str(checkmk_dir / "checkmk-borrar-reglas-http2.sh")])
+    print("Limpiando configuración previa en Checkmk...")
+    run_command([str(checkmk_dir / "checkmk-borrar-reglas-http2.sh")], env=base_env)
 
-    print("--- [Paso 2] Generando reglas desde alumnos.yaml ---")
+    run_command([str(checkmk_dir / "checkmk-borrar-host.sh")], env=base_env)
+
+    run_command([str(checkmk_dir / "checkmk-crear-host.sh")], env=base_env)
+
     rules = load_rules(alumnos_file)
+    total_rules = len(rules)
 
-    if len(rules) == 0:
-        print("No se generaron reglas nuevas desde alumnos.yaml. Finalizado.")
+    if total_rules == 0:
+        print("Sin reglas nuevas en alumnos.yaml. Finalizado.")
         return 0
 
-    print("--- [Paso 3] Creando reglas nuevas ---")
-    env_skip_activate = os.environ.copy()
+    print(f"Creando {total_rules} reglas HTTPv2...")
+    env_skip_activate = base_env.copy()
     env_skip_activate["SKIP_ACTIVATE"] = "1"
 
     for url, service_name in rules:
-        print(f"Creando regla: {service_name} -> {url}")
         run_command(
             [
                 str(checkmk_dir / "checkmk-crear-regla-http2.sh"),
@@ -127,10 +147,10 @@ def main() -> int:
             env=env_skip_activate,
         )
 
-    print("--- [Paso 4] Activando cambios pendientes ---")
-    run_command([str(checkmk_dir / "checkmk-activar-cambios.sh")])
+    print("Activando cambios pendientes...")
+    run_command([str(checkmk_dir / "checkmk-activar-cambios.sh")], env=base_env)
 
-    print("Proceso completado.")
+    print("Checkmk actualizado.")
     return 0
 
 
