@@ -10,10 +10,10 @@
 - nombre: alumno-maria
   id: "002"
   apps:
-    - prometheus
+    - grafana
   check-http:
-    - http://prometheus-service.alumno-maria.svc.cluster.local:9090
-
+    - http://grafana-service.alumno-maria.svc.cluster.local:3000
+    
 - nombre: alumno-pedro
   id: "003"
   apps: []
