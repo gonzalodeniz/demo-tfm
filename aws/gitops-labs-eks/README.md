@@ -8,7 +8,7 @@ Directorio de laboratorio GitOps para desplegar y monitorizar aplicaciones de al
 - `base/`: chart Helm con manifiestos de Prometheus, Grafana, namespace, ConfigMaps y NetworkPolicy (sin PVCs; usa almacenamiento efímero `emptyDir`).
 - `.env`: variables de endpoints (Gitea, Checkmk, Argo CD) y rutas usadas por `make`/scripts. Incluye `GITEA_REPO_URL`, `GITOPS_BASE_PATH`, `CHECKMK_URL`, `ARGOCD_URL`, `CHECKMK_HOST_NAME`, `CHECKMK_HOST_IP`, etc. Los scripts `.sh` y `monitoriza-laboratorios.py` la cargan automáticamente si existe en el directorio.
 - `scripts/`:
-  - `push-alumnos.sh`: commitea y hace push de cambios en `alumnos.yaml` al remote `gitea`.
+  - `push-alumnos.sh`: commitea y hace push de cambios en `alumnos.yaml`; carga `.env` y ajusta el remoto (`GITEA_REPO_URL`/`GITEA_REMOTE_NAME`) antes de hacer `git push`.
   - `monitoriza-laboratorios.py`: borra reglas HTTPv2 existentes en Checkmk y crea nuevas a partir de `alumnos.yaml` (reemplaza al `.sh`; invocar con `python3`).
   - `checkmk-borrar-reglas-http2.sh`: elimina todas las reglas `active_checks:httpv2` y activa cambios.
   - `checkmk-crear-regla-http2.sh`: crea una regla HTTPv2 y activa cambios.
