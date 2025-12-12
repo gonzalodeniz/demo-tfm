@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  k8s-viewer:
+    build: .
+    container_name: flask_k8s_local
+    # Host network para ver Minikube sin problemas de IP
+    network_mode: host 
+    
+    environment:
+      - PORT=5001
+      - FLASK_ENV=development
+
+    volumes:
+      # Configuración de Kubernetes (apunta a minikube o eks según tu contexto local)
+      - ${HOME}/.kube:/root/.kube
+      # Certificados de Minikube (Ruta espejo para evitar error de rutas absolutas)
+      - ${HOME}/.minikube:${HOME}/.minikube
+      # Código en caliente
+      - ./app.py:/app/app.py

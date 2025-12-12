@@ -1,0 +1,69 @@
+# --- 1. Identidad (ServiceAccount) ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flask-minikube-sa
+---
+# --- 2. Permisos (RBAC) ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: service-viewer-role
+rules:
+- apiGroups: [""]
+  resources: ["services"] # Permitimos leer servicios
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: service-viewer-binding
+subjects:
+- kind: ServiceAccount
+  name: flask-minikube-sa
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: service-viewer-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# --- 3. La Aplicación (Deployment) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-k8s-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-k8s
+  template:
+    metadata:
+      labels:
+        app: flask-k8s
+    spec:
+      serviceAccountName: flask-minikube-sa # <--- Importante: Usamos la identidad con permisos
+      containers:
+      - name: flask
+        image: flask-k8s-client:local # Nombre de tu imagen local
+        imagePullPolicy: Never        # <--- TRUCO: Obliga a usar la imagen local de Minikube
+        ports:
+        - containerPort: 5001
+        env:
+        - name: PORT
+          value: "5001"
+---
+# --- 4. Acceso de Red (Service) ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-k8s-service
+spec:
+  type: NodePort # El modo estándar para exponer en Minikube
+  selector:
+    app: flask-k8s
+  ports:
+    - protocol: TCP
+      port: 80      # Puerto en el servicio
+      targetPort: 5001 # Puerto en el contenedor
+      #  nodePort: 30001 # Puerto fijo para acceder desde tu navegador (opcional, pero útil)
