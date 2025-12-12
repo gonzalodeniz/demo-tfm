@@ -1,0 +1,73 @@
+# --- 1. Identidad (ServiceAccount) - IGUAL QUE MINIKUBE ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flask-eks-sa
+---
+# --- 2. Permisos (RBAC) - IGUAL QUE MINIKUBE ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: service-viewer-role-eks
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: service-viewer-binding-eks
+subjects:
+- kind: ServiceAccount
+  name: flask-eks-sa
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: service-viewer-role-eks
+  apiGroup: rbac.authorization.k8s.io
+---
+# --- 3. La Aplicación (Deployment) - MODIFICADO ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-k8s-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-k8s
+  template:
+    metadata:
+      labels:
+        app: flask-k8s
+    spec:
+      serviceAccountName: flask-eks-sa
+      containers:
+      - name: flask
+        # CAMBIO 1: Pon aquí la imagen que subiste a Docker Hub
+        image: tu_usuario_dockerhub/flask-k8s-client:v1 
+        
+        # CAMBIO 2: Eliminamos 'imagePullPolicy: Never' (o usamos 'Always')
+        imagePullPolicy: Always 
+        
+        ports:
+        - containerPort: 5001
+        env:
+        - name: PORT
+          value: "5001"
+---
+# --- 4. Acceso de Red (Service) - MODIFICADO ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-k8s-service-lb
+spec:
+  # CAMBIO 3: Usamos LoadBalancer para que AWS nos dé una IP pública
+  type: LoadBalancer 
+  selector:
+    app: flask-k8s
+  ports:
+    - protocol: TCP
+      port: 80      # Puerto de entrada desde internet
+      targetPort: 5001 # Puerto de tu contenedor
