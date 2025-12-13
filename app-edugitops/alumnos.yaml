@@ -14,3 +14,9 @@
   check-http:
   - http://prometheus-service.alumno-maria.svc.cluster.local:9090
   - http://grafana-service.alumno-maria.svc.cluster.local:3000
+- nombre: alumno-antonia
+  id: '003'
+  apps:
+  - prometheus
+  check-http:
+  - http://prometheus-service.alumno-antonia.svc.cluster.local:9090

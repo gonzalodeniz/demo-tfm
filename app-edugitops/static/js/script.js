@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.active-student-card').forEach(el => {
                 el.classList.remove('active-student-card');
                 el.classList.add('bg-light', 'border-0');
-                // Ajustar iconos
+                
+                // Ajustar estilos de iconos y texto para estado inactivo
                 const icon = el.querySelector('.avatar-placeholder');
                 if (icon) {
                     icon.classList.remove('text-primary');
@@ -73,8 +74,13 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     showToast('Éxito', data.message, true);
-                    // Opcional: Recargar para ver el nuevo alumno en la lista tras un breve delay
-                    setTimeout(() => location.reload(), 1500);
+                    
+                    // --- CAMBIO PRINCIPAL AQUÍ ---
+                    // En lugar de recargar la página genéricamente, redirigimos al ID guardado.
+                    // Esto hace que el backend renderice la página seleccionando al alumno.
+                    setTimeout(() => {
+                        window.location.href = "/?id=" + studentId;
+                    }, 1000); // 1 segundo de espera para ver el Toast
                 } else {
                     showToast('Error', data.message, false);
                 }
@@ -118,7 +124,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         toastEl.style.display = 'flex';
-        setTimeout(() => { toastEl.style.opacity = '1'; }, 10);
+        // Forzar reflow para que la transición funcione si estaba display:none
+        void toastEl.offsetWidth; 
+        toastEl.style.opacity = '1';
         
         setTimeout(() => {
             toastEl.style.opacity = '0';
