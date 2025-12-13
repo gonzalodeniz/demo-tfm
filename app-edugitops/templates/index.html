@@ -108,16 +108,7 @@
                                             </div>
                                             
                                             <div class="service-icon">
-                                                {% if servicio.id == 'prometheus' %}
-                                                    <i class="bi bi-fire text-danger fs-3"></i>
-                                                {% elif servicio.id == 'grafana' %}
-                                                    <i class="bi bi-speedometer2 text-warning fs-3"></i>
-                                                {% elif servicio.id == 'jupyterhub' %}
-                                                    <i class="bi bi-code-square text-warning fs-3"></i> {% elif servicio.id == 'nginx' %}
-                                                    <i class="bi bi-hdd-network text-success fs-3"></i>
-                                                {% else %}
-                                                    <i class="bi bi-box-seam text-primary fs-3"></i>
-                                                {% endif %}
+                                                <i class="bi {{ servicio.icon | default('bi-box-seam') }} {{ servicio.color_class | default('text-primary') }} fs-3"></i>
                                             </div>
 
                                             <div>
