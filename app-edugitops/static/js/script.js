@@ -2,13 +2,62 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnSave = document.getElementById('btn-save');
     const btnNew = document.getElementById('btn-new-student');
     const btnConfirmDelete = document.getElementById('btn-confirm-delete');
-    
+    const searchInput = document.getElementById('search-input');
+
+    // --- LÓGICA DE BÚSQUEDA Y PERSISTENCIA ---
+    if (searchInput) {
+        // 1. Restaurar búsqueda anterior si existe (Persistencia al navegar)
+        const savedSearch = sessionStorage.getItem('edu_search_term');
+        if (savedSearch) {
+            searchInput.value = savedSearch;
+        }
+
+        // 2. Evento de filtrado
+        searchInput.addEventListener('input', function() {
+            const filterValue = this.value.toLowerCase();
+            
+            // Guardar en sesión para que no se pierda al recargar la página (navegar)
+            sessionStorage.setItem('edu_search_term', this.value);
+
+            const studentItems = document.querySelectorAll('.student-item');
+
+            studentItems.forEach(item => {
+                const nameText = item.querySelector('.student-name').textContent.toLowerCase();
+                const idText = item.querySelector('.student-id').textContent.toLowerCase();
+
+                if (nameText.includes(filterValue) || idText.includes(filterValue)) {
+                    item.classList.remove('d-none');
+                    item.style.display = ''; 
+                } else {
+                    item.classList.add('d-none');
+                }
+            });
+        });
+
+        // 3. Aplicar el filtro visualmente al cargar si se restauró texto
+        if (savedSearch) {
+            searchInput.dispatchEvent(new Event('input'));
+        }
+    }
+
+    // Función auxiliar para resetear el buscador y limpiar la persistencia
+    function resetSearch() {
+        if (searchInput) {
+            searchInput.value = '';
+            // Esto limpiará también el sessionStorage gracias al evento 'input'
+            searchInput.dispatchEvent(new Event('input'));
+        }
+    }
+
     // --- Lógica: Nuevo Alumno ---
     if (btnNew) {
         btnNew.addEventListener('click', function(e) {
             if (e) e.preventDefault();
             
-            // 1. Quitar selección visual
+            // Limpiar Buscador (Requisito: borrar al pulsar Nuevo)
+            resetSearch();
+
+            // Quitar selección visual
             document.querySelectorAll('.active-student-card').forEach(el => {
                 el.classList.remove('active-student-card');
                 el.classList.add('bg-light', 'border-0');
@@ -24,24 +73,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // 2. Limpiar formulario Y CABECERA
+            // Limpiar formulario y cabecera
             const nameInput = document.getElementById('student-name');
             if (nameInput) nameInput.value = '';
             
-            // --- NUEVO: Limpiar el nombre en la cabecera ---
             const headerName = document.getElementById('header-student-name');
             if (headerName) headerName.textContent = ''; 
-            // -----------------------------------------------
             
-            // Desmarcar checkboxes
             document.querySelectorAll('.app-checkbox').forEach(cb => cb.checked = false);
             document.querySelectorAll('.service-card').forEach(card => card.classList.remove('selected'));
             
-            // Ocultar botón de borrar si está visible
             const btnDeleteTrigger = document.getElementById('btn-delete-modal-trigger');
             if (btnDeleteTrigger) btnDeleteTrigger.style.display = 'none';
 
-            // 3. Obtener siguiente ID
             fetch('/next_id')
                 .then(res => res.json())
                 .then(data => {
@@ -73,16 +117,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     showToast('Eliminado', data.message, true);
                     
+                    // Limpiar buscador al borrar (Requisito)
+                    resetSearch();
+
                     if (data.next_id) {
                         setTimeout(() => {
                              window.location.href = "/?id=" + data.next_id;
                         }, 500);
                     } else {
-                        // Si NO quedan alumnos
                         const listGroup = document.querySelector('.list-group');
                         if (listGroup) listGroup.innerHTML = '';
-                        
-                        // Esto dispara el evento click de arriba, que ahora limpia la cabecera
                         if (btnNew) btnNew.click();
                     }
                 } else {
@@ -107,7 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Actualización visual inmediata (opcional, mejora UX)
             const headerName = document.getElementById('header-student-name');
             if (headerName) headerName.textContent = studentName;
 
@@ -124,6 +167,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     showToast('Éxito', data.message, true);
+                    
+                    // Limpiar buscador al guardar (Requisito)
+                    resetSearch();
+
                     setTimeout(() => {
                         window.location.href = "/?id=" + studentId;
                     }, 1000);
