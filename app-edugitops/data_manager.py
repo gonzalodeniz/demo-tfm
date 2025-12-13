@@ -77,7 +77,6 @@ def save_alumno_changes(
     servicios_data: YamlData = load_catalogo()
     
     # 1. Validación de unicidad de nombre
-    # Buscamos si hay ALGÚN OTRO alumno con el mismo nombre.
     for alumno in alumnos_data:
         existing_id = str(alumno.get("id"))
         existing_name = str(alumno.get("nombre", "")).strip().lower()
@@ -133,3 +132,26 @@ def save_alumno_changes(
     except Exception as exc:
         print(f"Error al guardar: {exc}")
         return False, f"Error interno: {str(exc)}"
+
+
+def delete_student(student_id: str | int) -> tuple[bool, str]:
+    """Elimina un alumno por su ID."""
+    if not os.path.exists(ALUMNOS_FILE):
+        return False, "Fichero de alumnos no encontrado."
+    
+    alumnos = load_alumnos()
+    initial_count = len(alumnos)
+    
+    # Filtramos para eliminar el que coincida
+    # Usamos str() para asegurar comparación correcta
+    new_alumnos = [a for a in alumnos if str(a.get('id')) != str(student_id)]
+    
+    if len(new_alumnos) == initial_count:
+        return False, "Alumno no encontrado."
+        
+    try:
+        with open(ALUMNOS_FILE, "w", encoding="utf-8") as f:
+             yaml.safe_dump(new_alumnos, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+        return True, "Alumno eliminado correctamente."
+    except Exception as exc:
+        return False, f"Error al borrar: {str(exc)}"

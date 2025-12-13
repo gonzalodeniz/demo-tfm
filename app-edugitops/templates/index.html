@@ -118,17 +118,45 @@
                             {% endfor %}
                         </div>
 
-                        <div class="d-flex justify-content-end pt-3 border-top gap-2">
-                            <button id="btn-save" class="btn btn-primary px-4 py-2 fw-medium">
-                                <i class="bi bi-save me-2"></i>Guardar
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            {% if current_student.id and current_student.id != 'N/A' %}
+                            <button id="btn-delete-modal-trigger" class="btn btn-outline-danger px-4 py-2 fw-medium" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="bi bi-trash me-2"></i>Borrar Alumno
                             </button>
-                            
-                            <button class="btn btn-success px-4 py-2 fw-medium">
-                                <i class="bi bi-git me-2"></i>Push (Commit)
-                            </button>
+                            {% else %}
+                            <div></div> {% endif %}
+
+                            <div class="d-flex gap-2">
+                                <button id="btn-save" class="btn btn-primary px-4 py-2 fw-medium">
+                                    <i class="bi bi-save me-2"></i>Guardar
+                                </button>
+                                
+                                <button class="btn btn-success px-4 py-2 fw-medium">
+                                    <i class="bi bi-git me-2"></i>Push (Commit)
+                                </button>
+                            </div>
                         </div>
 
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que quieres eliminar al alumno <strong>{{ current_student.nombre }}</strong> (ID: {{ current_student.id }})?</p>
+                    <p class="text-muted small">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="btn-confirm-delete">Eliminar</button>
                 </div>
             </div>
         </div>

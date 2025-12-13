@@ -152,3 +152,68 @@ def test_data_manager_url_generation(
     url_esperada = "http://mi-app-service.test.svc.cluster.local:5000"
     assert len(alumno['check-http']) == 1
     assert alumno['check-http'][0] == url_esperada
+
+
+# === TESTS DE BORRADO ===
+
+@patch('data_manager.load_alumnos')
+@patch('builtins.open', new_callable=mock_open)
+@patch('yaml.safe_dump')
+@patch('os.path.exists', return_value=True)
+def test_delete_student_logic(
+    mock_exists: Any,
+    mock_dump: Any,
+    mock_file: Any,
+    mock_load: Any
+) -> None:
+    """Verifica la lógica de borrado en data_manager."""
+    mock_load.return_value = [
+        {'id': '001', 'nombre': 'borrar'},
+        {'id': '002', 'nombre': 'quedar'}
+    ]
+
+    success, msg = data_manager.delete_student('001')
+    
+    assert success is True
+    
+    # Verificar que se guardó la lista SIN el 001
+    args, _ = mock_dump.call_args
+    lista_guardada = args[0]
+    assert len(lista_guardada) == 1
+    assert lista_guardada[0]['id'] == '002'
+
+@patch('data_manager.delete_student')
+@patch('data_manager.load_alumnos') # Para calcular next_id
+def test_delete_route_redirects(
+    mock_load: Any, 
+    mock_delete: Any, 
+    client: FlaskClient
+) -> None:
+    """Verifica que la ruta devuelve el next_id correcto."""
+    mock_delete.return_value = (True, "Borrado")
+    # Simulamos que queda un alumno
+    mock_load.return_value = [{'id': '005'}] 
+    
+    response = client.post('/delete_student', json={'id': '001'})
+    
+    assert response.status_code == 200
+    assert response.json['success'] is True
+    assert response.json['next_id'] == '005'
+
+@patch('data_manager.delete_student')
+@patch('data_manager.load_alumnos')
+def test_delete_route_empty_list(
+    mock_load: Any, 
+    mock_delete: Any, 
+    client: FlaskClient
+) -> None:
+    """Verifica que next_id es null si no quedan alumnos."""
+    mock_delete.return_value = (True, "Borrado")
+    mock_load.return_value = [] # Lista vacía
+    
+    response = client.post('/delete_student', json={'id': '001'})
+    
+    assert response.status_code == 200
+    assert response.json['next_id'] is None
+
+    

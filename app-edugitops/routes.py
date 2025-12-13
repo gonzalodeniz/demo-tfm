@@ -20,10 +20,8 @@ def index() -> ResponseReturnValue:
     if selected_id:
         current_student = next((a for a in alumnos if str(a.get('id')) == selected_id), None)
 
-    # Fallback normal
+    # Fallback: si no hay alumno seleccionado y hay alumnos en la lista
     if not current_student and alumnos and not selected_id:
-         # Solo cargamos el primero si NO se pidió explícitamente un ID (o si es carga inicial)
-         # Si se pidió un ID y no existe, podríamos mostrar vacío o el primero.
          current_student = alumnos[0]
 
     # Objeto vacío por defecto
@@ -77,3 +75,26 @@ def save_student() -> ResponseReturnValue:
         return jsonify({'success': True, 'message': message})
     else:
         return jsonify({'success': False, 'message': message}), 400
+
+@main_bp.route('/delete_student', methods=['POST'])
+def delete_student() -> ResponseReturnValue:
+    data: Any = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "message": "JSON inválido."}), 400
+
+    student_id: Any = data.get("id")
+    if not student_id:
+        return jsonify({'success': False, 'message': 'ID obligatorio.'}), 400
+    
+    success, msg = data_manager.delete_student(student_id)
+    
+    if success:
+        # Calcular cuál es el siguiente alumno a mostrar tras el borrado
+        alumnos_restantes = data_manager.load_alumnos()
+        next_id = None
+        if alumnos_restantes:
+            next_id = alumnos_restantes[0]['id']
+            
+        return jsonify({'success': True, 'message': msg, 'next_id': next_id})
+    else:
+        return jsonify({'success': False, 'message': msg}), 400
