@@ -1,26 +1,20 @@
 - nombre: alumno-juan
-  id: "001"
-  apps: 
-    - prometheus
-    - grafana
-  check-http: 
-    - http://prometheus-service.alumno-juan.svc.cluster.local:9090
-    - http://grafana-service.alumno-juan.svc.cluster.local:3000
-- nombre: alumno-maria
-  id: "002"
+  id: '001'
   apps:
-    - grafana
+  - prometheus
+  - grafana
+  - jupyterhub
   check-http:
-    - http://grafana-service.alumno-maria.svc.cluster.local:3000
+  - http://prometheus-service.alumno-juan.svc.cluster.local:9090
+  - http://grafana-service.alumno-juan.svc.cluster.local:3000
+  - http://jupyterhub-service.alumno-juan.svc.cluster.local:8000
+- nombre: alumno-maria
+  id: '002'
+  apps:
+  - grafana
+  check-http:
+  - http://grafana-service.alumno-maria.svc.cluster.local:3000
 - nombre: alumno-pedro
-  id: "003"
+  id: '003'
   apps: []
   check-http: []
-# - nombre: alumno-lucia
-#   id: "004"
-#   apps:
-#     - grafana
-#     - prometheus
-#   check-http:
-#     - http://grafana-service.alumno-lucia.svc.cluster.local:3000 
-#     - http://prometheus-service.alumno-lucia.svc.cluster.local:9090

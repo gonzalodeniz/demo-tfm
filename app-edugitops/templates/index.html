@@ -67,12 +67,12 @@
                 </div>
             </div>
 
-            <div class="col-lg-8 col-xl-9">
-                
-                <div class="alert alert-success d-flex align-items-center border-0 text-white shadow-sm ms-auto mb-4 py-3" style="background-color: #198754; max-width: 500px; float: right; clear: both;">
-                    <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+            <div class="col-lg-8 col-xl-9">                
+                <div id="toast-message" class="alert alert-success d-flex align-items-center border-0 text-white shadow-sm ms-auto mb-4 py-3" 
+                    style="background-color: #198754; max-width: 500px; float: right; clear: both; display: none; opacity: 0; transition: opacity 1s ease-out;">
+                    <i id="toast-icon" class="bi bi-check-circle-fill fs-4 me-3"></i>
                     <div>
-                        <strong>Éxito:</strong> Los cambios se han guardado y enviado al repositorio Git correctamente.
+                        <strong id="toast-title">Éxito:</strong> <span id="toast-body">Los cambios se han guardado...</span>
                     </div>
                 </div>
                 <div class="clearfix"></div>
@@ -83,12 +83,12 @@
 
                         <div class="mb-4">
                             <label class="form-label fw-bold">ID Único (No editable):</label>
-                            <input type="text" class="form-control bg-light" value="{{ current_student.id }}" readonly>
+                            <input type="text" id="student-id" class="form-control bg-light" value="{{ current_student.id }}" readonly>
                         </div>
 
                         <div class="mb-5">
                             <label class="form-label fw-bold">Nombre del Alumno:</label>
-                            <input type="text" class="form-control" value="{{ current_student.nombre }}">
+                            <input type="text" id="student-name" class="form-control" value="{{ current_student.nombre }}">
                         </div>
 
                         <div class="mb-2 d-flex align-items-center gap-2">
@@ -104,7 +104,7 @@
                                     <label class="card h-100 cursor-pointer service-card {{ 'selected' if is_checked else '' }}">
                                         <div class="card-body d-flex align-items-start gap-3">
                                             <div class="mt-1">
-                                                <input type="checkbox" class="form-check-input fs-5" {{ 'checked' if is_checked else '' }}>
+                                                <input type="checkbox" class="form-check-input fs-5 app-checkbox" value="{{ servicio.id }}" {{ 'checked' if is_checked else '' }}>
                                             </div>
                                             
                                             <div class="service-icon">
@@ -120,22 +120,17 @@
                                 </div>
                             {% endfor %}
                         </div>
-
-                        <div class="d-flex justify-content-between pt-3 border-top">
-                            <button class="btn btn-light border fw-medium px-4">
-                                <i class="bi bi-file-earmark-code me-2"></i>Previsualizar YAML
+                        <! -- Botones de acción -->
+                        <div class="d-flex justify-content-end pt-3 border-top gap-2">
+                            <button id="btn-save" class="btn btn-primary px-4 py-2 fw-medium">
+                                <i class="bi bi-save me-2"></i>Guardar
                             </button>
-
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-primary px-4 py-2 fw-medium">
-                                    <i class="bi bi-save me-2"></i>Guardar
-                                </button>
-                                
-                                <button class="btn btn-success px-4 py-2 fw-medium">
-                                    <i class="bi bi-git me-2"></i>Push (Commit)
-                                </button>
-                            </div>
+                            
+                            <button class="btn btn-success px-4 py-2 fw-medium">
+                                <i class="bi bi-git me-2"></i>Push (Commit)
+                            </button>
                         </div>
+                        <!-- Fin Botones de acción -->
                     </div>
                 </div>
             </div>
@@ -143,5 +138,75 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnSave = document.getElementById('btn-save');
+            const toastEl = document.getElementById('toast-message');
+            
+            btnSave.addEventListener('click', function() {
+                // 1. Recoger datos
+                const studentId = document.getElementById('student-id').value;
+                const studentName = document.getElementById('student-name').value;
+                
+                const checkedBoxes = document.querySelectorAll('.app-checkbox:checked');
+                const selectedApps = Array.from(checkedBoxes).map(cb => cb.value);
+
+                // 2. Validación Frontend
+                if (!studentName.trim()) {
+                    showToast('Error', 'El nombre del alumno no puede estar vacío.', false);
+                    return;
+                }
+
+                // 3. Enviar datos al servidor
+                fetch('/save_student', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: studentId,
+                        nombre: studentName,
+                        apps: selectedApps
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Mensaje actualizado (sin referencia a Git)
+                        showToast('Guardado', 'Los cambios se han guardado correctamente en el fichero local.', true);
+                    } else {
+                        showToast('Error', data.message, false);
+                    }
+                })
+                .catch(error => {
+                    showToast('Error', 'No se pudo conectar con el servidor.', false);
+                    console.error('Error:', error);
+                });
+            });
+
+            function showToast(title, message, isSuccess) {
+                const toastTitle = document.getElementById('toast-title');
+                const toastBody = document.getElementById('toast-body');
+                const toastIcon = document.getElementById('toast-icon');
+
+                toastTitle.textContent = title + ':';
+                toastBody.textContent = message;
+                
+                if (isSuccess) {
+                    toastEl.style.backgroundColor = '#198754';
+                    toastIcon.className = 'bi bi-check-circle-fill fs-4 me-3';
+                } else {
+                    toastEl.style.backgroundColor = '#dc3545';
+                    toastIcon.className = 'bi bi-exclamation-triangle-fill fs-4 me-3';
+                }
+
+                toastEl.style.display = 'flex';
+                setTimeout(() => { toastEl.style.opacity = '1'; }, 10);
+                setTimeout(() => {
+                    toastEl.style.opacity = '0';
+                    setTimeout(() => { toastEl.style.display = 'none'; }, 1000);
+                }, 5000);
+            }
+        });
+    </script>
 </body>
 </html>
