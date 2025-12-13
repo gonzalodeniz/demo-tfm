@@ -76,7 +76,9 @@
 
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <h4 class="card-title mb-4 fw-bold">Detalles y Asignación: {{ current_student.nombre }}</h4>
+                        <h4 class="card-title mb-4 fw-bold">
+                            Detalles y Asignación: <span id="header-student-name">{{ current_student.nombre }}</span>
+                        </h4>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold">ID Único (No editable):</label>

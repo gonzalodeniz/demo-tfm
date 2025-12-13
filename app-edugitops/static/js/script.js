@@ -17,11 +17,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     icon.classList.remove('text-primary');
                     icon.classList.add('text-secondary');
                 }
+                const smallText = el.querySelector('small');
+                if (smallText) {
+                    smallText.classList.remove('text-dark');
+                    smallText.classList.add('text-muted');
+                }
             });
 
-            // 2. Limpiar formulario
+            // 2. Limpiar formulario Y CABECERA
             const nameInput = document.getElementById('student-name');
             if (nameInput) nameInput.value = '';
+            
+            // --- NUEVO: Limpiar el nombre en la cabecera ---
+            const headerName = document.getElementById('header-student-name');
+            if (headerName) headerName.textContent = ''; 
+            // -----------------------------------------------
             
             // Desmarcar checkboxes
             document.querySelectorAll('.app-checkbox').forEach(cb => cb.checked = false);
@@ -40,7 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(err => console.error("Error obteniendo ID:", err));
             
-            // Actualizar URL a limpio (opcional)
             window.history.pushState({}, "", "/");
         });
     }
@@ -50,7 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
         btnConfirmDelete.addEventListener('click', function() {
             const studentId = document.getElementById('student-id').value;
             
-            // Cerrar modal
             const modalEl = document.getElementById('deleteModal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             modalInstance.hide();
@@ -65,19 +73,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     showToast('Eliminado', data.message, true);
                     
-                    // Lógica de redirección
                     if (data.next_id) {
-                        // Si quedan alumnos, ir al primero
                         setTimeout(() => {
                              window.location.href = "/?id=" + data.next_id;
                         }, 500);
                     } else {
-                        // Si NO quedan alumnos, preparar ventana para nuevo alumno
-                        // Eliminamos la lista del DOM para evitar confusión visual
+                        // Si NO quedan alumnos
                         const listGroup = document.querySelector('.list-group');
                         if (listGroup) listGroup.innerHTML = '';
                         
-                        // Disparamos la lógica de "Nuevo Alumno"
+                        // Esto dispara el evento click de arriba, que ahora limpia la cabecera
                         if (btnNew) btnNew.click();
                     }
                 } else {
@@ -101,6 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('Error', 'El nombre del alumno no puede estar vacío.', false);
                 return;
             }
+
+            // Actualización visual inmediata (opcional, mejora UX)
+            const headerName = document.getElementById('header-student-name');
+            if (headerName) headerName.textContent = studentName;
 
             fetch('/save_student', {
                 method: 'POST',

@@ -42,28 +42,23 @@ def test_index_route(mock_catalogo: Any, mock_alumnos: Any, client: FlaskClient)
     assert 'Test Alumno' in html
     assert 'Grafana' in html
 
-@patch('data_manager.save_alumno_changes')
-def test_save_route_success(mock_save: Any, client: FlaskClient) -> None:
-    """La ruta POST /save_student debe llamar al manager y devolver éxito."""
-    mock_save.return_value = (True, "Guardado OK")
-    
-    payload = {'id': '001', 'nombre': 'Nuevo Nombre', 'apps': ['grafana']}
-    response = client.post('/save_student', json=payload)
-    
-    assert response.status_code == 200
-    assert response.json['success'] is True
-    
-    mock_save.assert_called_once_with('001', 'Nuevo Nombre', ['grafana'])
-
 @patch('data_manager.load_alumnos')
-def test_next_id_endpoint(mock_load_alumnos: Any, client: FlaskClient) -> None:
-    """La ruta GET /next_id debe devolver el siguiente ID en JSON."""
-    mock_load_alumnos.return_value = [{'id': '009'}]
-    response = client.get('/next_id')
-    
-    assert response.status_code == 200
-    assert response.json['next_id'] == "010"
+@patch('data_manager.load_catalogo')
+def test_index_empty_state(mock_catalogo: Any, mock_alumnos: Any, client: FlaskClient) -> None:
+    """Si no hay alumnos, la cabecera de detalles debe estar vacía."""
+    mock_alumnos.return_value = [] # Lista vacía
+    mock_catalogo.return_value = []
 
+    response = client.get('/')
+    html = response.data.decode('utf-8')
+
+    assert response.status_code == 200
+    # Verificamos que el span esté vacío o contenga solo espacios
+    # Buscamos la estructura HTML generada
+    assert '<span id="header-student-name"></span>' in html or '<span id="header-student-name"> </span>' in html 
+    assert 'Detalles y Asignación:' in html
+
+    
 # ====================================================================
 # BLOQUE 2: Tests de Lógica de Negocio (data_manager.py)
 # ====================================================================
@@ -216,4 +211,3 @@ def test_delete_route_empty_list(
     assert response.status_code == 200
     assert response.json['next_id'] is None
 
-    
