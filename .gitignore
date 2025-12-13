@@ -1,4 +1,5 @@
 *.csv
+*.pyc
 aws/aws/
 aws/credentials
 venv/
