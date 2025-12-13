@@ -1,18 +1,24 @@
-from flask import Blueprint, render_template, request, jsonify
+from __future__ import annotations
+
+from typing import Any
+
+from flask import Blueprint, jsonify, render_template, request
+from flask.typing import ResponseReturnValue
+
 import data_manager
 
 # Definimos el Blueprint
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
-def index():
+def index() -> ResponseReturnValue:
     # 1. Cargar datos usando la capa de datos
-    alumnos = data_manager.load_alumnos()
-    servicios = data_manager.load_catalogo()
+    alumnos: list[dict[str, Any]] = data_manager.load_alumnos()
+    servicios: list[dict[str, Any]] = data_manager.load_catalogo()
 
     # 2. Lógica de selección de alumno
-    selected_id = request.args.get('id')
-    current_student = None
+    selected_id: str | None = request.args.get("id")
+    current_student: dict[str, Any] | None = None
 
     if selected_id:
         current_student = next((a for a in alumnos if str(a.get('id')) == selected_id), None)
@@ -25,7 +31,10 @@ def index():
     if not current_student:
         current_student = {'nombre': 'No Asignado', 'id': 'N/A', 'apps': []}
 
-    assigned_apps = set(current_student.get('apps', []))
+    assigned_apps: set[str] = set()
+    apps_value = current_student.get("apps", [])
+    if isinstance(apps_value, list):
+        assigned_apps = {str(app_id) for app_id in apps_value}
 
     return render_template(
         'index.html',
@@ -36,15 +45,23 @@ def index():
     )
 
 @main_bp.route('/save_student', methods=['POST'])
-def save_student():
-    data = request.get_json()
-    
-    student_id = data.get('id')
-    new_name = data.get('nombre')
-    new_apps = data.get('apps', [])
+def save_student() -> ResponseReturnValue:
+    data: Any = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "message": "JSON inválido."}), 400
+
+    student_id: Any = data.get("id")
+    if not isinstance(student_id, (str, int)):
+        return jsonify({"success": False, "message": "El campo 'id' es obligatorio."}), 400
+
+    new_name: Any = data.get("nombre")
+    new_apps_raw: Any = data.get("apps", [])
+    new_apps: list[str] = []
+    if isinstance(new_apps_raw, list):
+        new_apps = [str(app_id) for app_id in new_apps_raw]
 
     # Validación básica
-    if not new_name or not new_name.strip():
+    if not isinstance(new_name, str) or not new_name.strip():
         return jsonify({'success': False, 'message': 'El nombre no puede estar vacío.'}), 400
 
     # Delegar la lógica de negocio al data_manager

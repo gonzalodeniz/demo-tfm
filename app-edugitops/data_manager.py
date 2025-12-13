@@ -1,31 +1,53 @@
+from __future__ import annotations
+
 import os
+from typing import Any, cast
+
 import yaml
 
 # Definimos rutas absolutas
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ALUMNOS_FILE = os.path.join(BASE_DIR, 'alumnos.yaml')
-CATALOGO_FILE = os.path.join(BASE_DIR, 'catalogo-servicios.yaml')
+BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
+ALUMNOS_FILE: str = os.path.join(BASE_DIR, "alumnos.yaml")
+CATALOGO_FILE: str = os.path.join(BASE_DIR, "catalogo-servicios.yaml")
 
-def _load_yaml(filepath):
+YamlItem = dict[str, Any]
+YamlData = list[YamlItem]
+
+
+def _load_yaml(filepath: str) -> YamlData:
     """Función interna para cargar YAML genérico."""
     if not os.path.exists(filepath):
         return []
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f) or []
-    except Exception as e:
-        print(f"Error cargando {filepath}: {e}")
+        with open(filepath, "r", encoding="utf-8") as f:
+            loaded: Any = yaml.safe_load(f)
+    except Exception as exc:
+        print(f"Error cargando {filepath}: {exc}")
         return []
 
-def load_alumnos():
+    if loaded is None or not isinstance(loaded, list):
+        return []
+
+    items: YamlData = []
+    for item in loaded:
+        if isinstance(item, dict):
+            items.append(cast(YamlItem, item))
+    return items
+
+
+def load_alumnos() -> YamlData:
     """Devuelve la lista de alumnos."""
     return _load_yaml(ALUMNOS_FILE)
 
-def load_catalogo():
+
+def load_catalogo() -> YamlData:
     """Devuelve la lista de servicios del catálogo."""
     return _load_yaml(CATALOGO_FILE)
 
-def save_alumno_changes(student_id, new_name, new_apps):
+
+def save_alumno_changes(
+    student_id: str | int, new_name: str, new_apps: list[str]
+) -> tuple[bool, str]:
     """
     Actualiza un alumno, regenera sus URLs check-http y guarda en disco.
     Retorna (True, mensaje) si tiene éxito, o (False, error).
@@ -35,11 +57,16 @@ def save_alumno_changes(student_id, new_name, new_apps):
 
     try:
         # 1. Cargar datos
-        alumnos_data = load_alumnos()
-        servicios_data = load_catalogo()
+        alumnos_data: YamlData = load_alumnos()
+        servicios_data: YamlData = load_catalogo()
         
         # Mapa de puertos para búsqueda rápida: {'grafana': 3000, ...}
-        service_ports = {s['id']: s['port'] for s in servicios_data if 'port' in s}
+        service_ports: dict[str, int] = {}
+        for service in servicios_data:
+            service_id = service.get("id")
+            port = service.get("port")
+            if isinstance(service_id, str) and isinstance(port, int):
+                service_ports[service_id] = port
 
         # 2. Buscar y actualizar
         student_found = False
@@ -49,10 +76,10 @@ def save_alumno_changes(student_id, new_name, new_apps):
                 alumno['apps'] = new_apps
                 
                 # Lógica de negocio: Regenerar URLs check-http
-                new_check_http = []
+                new_check_http: list[str] = []
                 for app_id in new_apps:
                     port = service_ports.get(app_id)
-                    if port:
+                    if port is not None:
                         url = f"http://{app_id}-service.{new_name}.svc.cluster.local:{port}"
                         new_check_http.append(url)
                 
@@ -64,11 +91,11 @@ def save_alumno_changes(student_id, new_name, new_apps):
             return False, "Alumno no encontrado."
 
         # 3. Guardar en disco
-        with open(ALUMNOS_FILE, 'w', encoding='utf-8') as f:
+        with open(ALUMNOS_FILE, "w", encoding="utf-8") as f:
             yaml.safe_dump(alumnos_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
         return True, "Cambios guardados localmente correctamente."
 
-    except Exception as e:
-        print(f"Error al guardar: {e}")
-        return False, f"Error interno: {str(e)}"
+    except Exception as exc:
+        print(f"Error al guardar: {exc}")
+        return False, f"Error interno: {str(exc)}"

@@ -1,18 +1,22 @@
-import subprocess
+from __future__ import annotations
+
 import os
+import subprocess
+
 from flask import Flask, jsonify
+from flask.typing import ResponseReturnValue
 
 app = Flask(__name__)
 
 @app.route('/')
-def home():
+def home() -> ResponseReturnValue:
     return """
     <h1>Monitor de Servicios K8s</h1>
     <p>Ruta: <a href="/services">/services</a> para ver direcciones públicas.</p>
     """
 
 @app.route('/services')
-def get_services():
+def get_services() -> ResponseReturnValue:
     try:
         # -o wide muestra IPs externas y puertos
         cmd = ['kubectl', 'get', 'services', '--all-namespaces', '-o', 'wide']

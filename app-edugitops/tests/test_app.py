@@ -1,7 +1,13 @@
+from __future__ import annotations
+
+from collections.abc import Generator
+from typing import Any
+
 import pytest
 import sys
 import os
 from unittest.mock import patch, mock_open, MagicMock
+from flask.testing import FlaskClient
 
 # --- Configuración de rutas ---
 # Ajustamos el path para poder importar los módulos desde el directorio padre
@@ -13,12 +19,12 @@ import data_manager
 
 # --- Fixture Global ---
 @pytest.fixture
-def client():
+def client() -> Generator[FlaskClient, None, None]:
     """Configura un cliente de pruebas de Flask usando la factoría create_app."""
-    app = create_app()
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+    flask_app = create_app()
+    flask_app.config["TESTING"] = True
+    with flask_app.test_client() as test_client:
+        yield test_client
 
 # ====================================================================
 # BLOQUE 1: Tests de Rutas (Web / Blueprint)
@@ -27,7 +33,7 @@ def client():
 
 @patch('data_manager.load_alumnos')
 @patch('data_manager.load_catalogo')
-def test_index_route(mock_catalogo, mock_alumnos, client):
+def test_index_route(mock_catalogo: Any, mock_alumnos: Any, client: FlaskClient) -> None:
     """La ruta '/' debe cargar y mostrar los datos correctamente."""
     
     # Simulamos datos
@@ -46,7 +52,7 @@ def test_index_route(mock_catalogo, mock_alumnos, client):
     assert 'Grafana' in html
 
 @patch('data_manager.save_alumno_changes')
-def test_save_route_success(mock_save, client):
+def test_save_route_success(mock_save: Any, client: FlaskClient) -> None:
     """La ruta POST /save_student debe llamar al manager y devolver éxito."""
     
     # Simulamos que el manager guardó todo bien
@@ -61,14 +67,15 @@ def test_save_route_success(mock_save, client):
     response = client.post('/save_student', json=payload)
     
     assert response.status_code == 200
-    assert response.json['success'] is True
-    assert response.json['message'] == "Guardado OK"
+    assert response.json is not None
+    assert response.json["success"] is True
+    assert response.json["message"] == "Guardado OK"
     
     # Verificamos que se llamó a la función del manager con los datos correctos
     mock_save.assert_called_once_with('001', 'Nuevo Nombre', ['grafana'])
 
 @patch('data_manager.save_alumno_changes')
-def test_save_route_fail(mock_save, client):
+def test_save_route_fail(mock_save: Any, client: FlaskClient) -> None:
     """Si el manager falla, la ruta debe devolver error."""
     
     # Simulamos error en el manager (ej. archivo no encontrado)
@@ -78,7 +85,8 @@ def test_save_route_fail(mock_save, client):
     response = client.post('/save_student', json=payload)
     
     assert response.status_code == 400
-    assert response.json['success'] is False
+    assert response.json is not None
+    assert response.json["success"] is False
 
 # ====================================================================
 # BLOQUE 2: Tests de Lógica de Datos (data_manager.py)
@@ -90,7 +98,13 @@ def test_save_route_fail(mock_save, client):
 @patch('builtins.open', new_callable=mock_open)
 @patch('yaml.safe_dump')
 @patch('os.path.exists', return_value=True)
-def test_data_manager_logic_check_http(mock_exists, mock_dump, mock_file, mock_catalogo, mock_alumnos):
+def test_data_manager_logic_check_http(
+    mock_exists: Any,
+    mock_dump: Any,
+    mock_file: Any,
+    mock_catalogo: Any,
+    mock_alumnos: Any,
+) -> None:
     """
     Verifica la lógica interna de save_alumno_changes:
     Debe generar correctamente las URLs check-http basándose en los puertos.
