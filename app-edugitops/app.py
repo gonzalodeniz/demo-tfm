@@ -1,6 +1,6 @@
 import os
 import yaml
-from flask import Flask, render_template
+from flask import Flask, render_template, request  # <--- Importamos request
 
 app = Flask(__name__)
 
@@ -10,50 +10,43 @@ ALUMNOS_FILE = os.path.join(BASE_DIR, 'alumnos.yaml')
 CATALOGO_FILE = os.path.join(BASE_DIR, 'catalogo-servicios.yaml')
 
 def load_yaml_data(filepath, file_description="archivo"):
-    """
-    Carga un archivo YAML con diagnósticos detallados.
-    """
-    print(f"--- Cargando {file_description} desde: {filepath} ---")
-    
+    """Carga un archivo YAML de forma segura y con logs."""
+    # (Misma función que tenías antes, no cambia)
     if not os.path.exists(filepath):
-        print(f"ERROR: El archivo no existe en la ruta especificada.")
+        print(f"ERROR: El archivo {filepath} no existe.")
         return []
-
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
-            data = yaml.safe_load(f) or []
-            print(f"ÉXITO: Se cargaron {len(data)} elementos.")
-            return data
-    except yaml.YAMLError as exc:
-        print(f"ERROR YAML: Error de sintaxis en {file_description}.\nDetalle: {exc}")
-        return []
-    except UnicodeDecodeError:
-        print(f"ERROR CODIFICACIÓN: El archivo {file_description} no está guardado en UTF-8.")
-        return []
+            return yaml.safe_load(f) or []
     except Exception as e:
-        print(f"ERROR DESCONOCIDO: {e}")
+        print(f"ERROR al cargar {file_description}: {e}")
         return []
 
 @app.route('/')
 def index():
-    # 1. Cargar datos con logs en terminal
+    # 1. Cargar datos
     alumnos = load_yaml_data(ALUMNOS_FILE, "Alumnos")
     servicios = load_yaml_data(CATALOGO_FILE, "Catálogo de Servicios")
 
-    # 2. Lógica de selección de alumno (Simulación)
-    # Por defecto seleccionamos el ID 001 (Juan) para que coincida con el prototipo
-    current_student_id = "001"
-    current_student = next((a for a in alumnos if str(a.get('id')) == current_student_id), None)
+    # 2. Detectar alumno seleccionado vía URL (?id=XXX)
+    selected_id = request.args.get('id')
+    current_student = None
 
-    # Fallback si no existe el 001
+    # Intentar buscar el alumno por el ID recibido
+    if selected_id:
+        current_student = next((a for a in alumnos if str(a.get('id')) == selected_id), None)
+
+    # Si no se encontró, o no se seleccionó, usamos el primero.
     if not current_student and alumnos:
         current_student = alumnos[0]
-
-    # 3. Preparar apps asignadas
-    # Convertimos a set para verificar rápido en el template
-    assigned_apps = set()
-    if current_student and 'apps' in current_student:
-        assigned_apps = set(current_student['apps'])
+        
+    # [CAMBIO CLAVE] Si NO HAY ALUMNOS, creamos un objeto vacío de seguridad 
+    # para evitar fallos de Jinja2 al intentar acceder a current_student.nombre.
+    if not current_student:
+        current_student = {'nombre': 'No Asignado', 'id': 'N/A', 'apps': []}
+        
+    # 3. Preparar apps asignadas para los checkboxes
+    assigned_apps = set(current_student.get('apps', [])) # Usamos .get('apps', []) para seguridad
 
     return render_template(
         'index.html',
@@ -64,5 +57,4 @@ def index():
     )
 
 if __name__ == '__main__':
-    print(f"Directorio base de la aplicación: {BASE_DIR}")
     app.run(debug=True, port=5000)

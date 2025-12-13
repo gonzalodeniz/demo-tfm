@@ -40,10 +40,14 @@
                             <i class="bi bi-plus-lg me-1"></i> Nuevo Alumno
                         </button>
 
-                        <div class="list-group gap-2 border-0">
+                       <div class="list-group gap-2 border-0">
                             {% for alumno in alumnos %}
-                                {% set is_active = (current_student and alumno.id == current_student.id) %}
-                                <a href="#" class="list-group-item list-group-item-action border rounded p-3 d-flex align-items-center gap-3 {{ 'active-student-card' if is_active else 'bg-light border-0' }}">
+                                {# Comprobamos si es el alumno actual para marcarlo activo #}
+                                {% set is_active = (current_student and alumno.id|string == current_student.id|string) %}
+                                
+                                <a href="{{ url_for('index', id=alumno.id) }}" 
+                                class="list-group-item list-group-item-action border rounded p-3 d-flex align-items-center gap-3 {{ 'active-student-card' if is_active else 'bg-light border-0' }}">
+                                    
                                     <div class="avatar-placeholder {{ 'text-primary' if is_active else 'text-secondary' }}">
                                         <i class="bi bi-person-fill fs-4"></i>
                                     </div>
