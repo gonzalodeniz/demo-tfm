@@ -58,7 +58,7 @@ def test_index_empty_state(mock_catalogo: Any, mock_alumnos: Any, client: FlaskC
     assert '<span id="header-student-name"></span>' in html or '<span id="header-student-name"> </span>' in html 
     assert 'Detalles y Asignación:' in html
 
-    
+
 # ====================================================================
 # BLOQUE 2: Tests de Lógica de Negocio (data_manager.py)
 # ====================================================================
@@ -211,3 +211,72 @@ def test_delete_route_empty_list(
     assert response.status_code == 200
     assert response.json['next_id'] is None
 
+# ====================================================================
+# BLOQUE 3: Tests Editor RAW (Validaciones)
+# ====================================================================
+
+@patch('data_manager.load_catalogo')
+def test_validate_raw_yaml_success(mock_catalogo: Any) -> None:
+    """Debe permitir guardar si el YAML cumple todas las reglas."""
+    mock_catalogo.return_value = [{'id': 'app1', 'port': 80}]
+    
+    # YAML válido
+    raw_valid = """
+- nombre: user1
+  id: '001'
+  apps: ['app1']
+  check-http:
+  - http://app1-service.user1.svc.cluster.local:80
+    """
+    
+    # Mockeamos escritura real para no tocar disco
+    with patch('builtins.open', mock_open()), patch('yaml.safe_dump'):
+        success, msg = data_manager.validate_and_save_raw_yaml(raw_valid)
+    
+    assert success is True
+    assert "correctamente" in msg
+
+@patch('data_manager.load_catalogo')
+def test_validate_raw_yaml_duplicates(mock_catalogo: Any) -> None:
+    """Debe fallar si hay IDs duplicados."""
+    mock_catalogo.return_value = []
+    
+    raw_dup = """
+- nombre: u1
+  id: '001'
+- nombre: u2
+  id: '001'
+    """
+    success, msg = data_manager.validate_and_save_raw_yaml(raw_dup)
+    assert success is False
+    assert "ID duplicado" in msg
+
+@patch('data_manager.load_catalogo')
+def test_validate_raw_yaml_invalid_app(mock_catalogo: Any) -> None:
+    """Debe fallar si la app no está en el catálogo."""
+    mock_catalogo.return_value = [{'id': 'app1', 'port': 80}]
+    
+    raw_bad_app = """
+- nombre: u1
+  id: '001'
+  apps: ['app_inexistente']
+    """
+    success, msg = data_manager.validate_and_save_raw_yaml(raw_bad_app)
+    assert success is False
+    assert "no existe en el catálogo" in msg
+
+@patch('data_manager.load_catalogo')
+def test_validate_raw_yaml_bad_url(mock_catalogo: Any) -> None:
+    """Debe fallar si la URL no coincide con el formato esperado."""
+    mock_catalogo.return_value = [{'id': 'app1', 'port': 80}]
+    
+    raw_bad_url = """
+- nombre: u1
+  id: '001'
+  apps: ['app1']
+  check-http:
+  - http://url-inventada.com
+    """
+    success, msg = data_manager.validate_and_save_raw_yaml(raw_bad_url)
+    assert success is False
+    assert "URLs no coinciden" in msg

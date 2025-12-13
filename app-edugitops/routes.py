@@ -98,3 +98,28 @@ def delete_student() -> ResponseReturnValue:
         return jsonify({'success': True, 'message': msg, 'next_id': next_id})
     else:
         return jsonify({'success': False, 'message': msg}), 400
+
+# --- NUEVAS RUTAS EDITOR RAW ---
+
+@main_bp.route('/editor')
+def editor() -> ResponseReturnValue:
+    """Renderiza la vista de edición manual de YAML."""
+    raw_content = data_manager.get_raw_alumnos_yaml()
+    return render_template('yaml_editor.html', raw_content=raw_content)
+
+@main_bp.route('/save_raw_yaml', methods=['POST'])
+def save_raw_yaml() -> ResponseReturnValue:
+    data: Any = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "message": "JSON inválido."}), 400
+
+    raw_text = data.get('content')
+    if raw_text is None: # Puede ser string vacío, así que chequeamos None
+        return jsonify({"success": False, "message": "Falta el contenido."}), 400
+
+    success, message = data_manager.validate_and_save_raw_yaml(str(raw_text))
+
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'success': False, 'message': message}), 400
