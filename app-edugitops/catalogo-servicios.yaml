@@ -1,0 +1,18 @@
+- nombre: Prometheus (Monitorización)
+  id: prometheus
+  descripcion: Recolector de métricas.
+  port: 9090
+  path: /
+- nombre: Grafana (Paneles Visuales)
+  id: grafana
+  descripcion: Visualización de datos.
+  port: 3000
+- nombre: JupyterHub (Entorno Python)
+  id: jupyterhub
+  descripcion: Cuadernos interactivos.
+  port: 8000
+- nombre: Servidor Web Nginx
+  id: nginx
+  descripcion: Servidor básico html.
+  port: 80
+  

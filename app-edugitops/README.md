@@ -188,3 +188,109 @@ kubectl delete -f eks-deployment.yaml
 ```
 
 Esto eliminará el Pod y borrará automáticamente el Load Balancer de AWS.
+
+## EduGitOps - Gestor de Laboratorios Virtuales
+
+Este proyecto es un prototipo funcional para un Trabajo de Fin de Máster (TFM) orientado al despliegue de laboratorios educativos mediante **GitOps**.
+
+La aplicación es una interfaz web desarrollada en **Python (Flask)** que permite a docentes gestionar de forma visual la asignación de herramientas (Prometheus, Grafana, JupyterHub, etc.) a los alumnos. Su objetivo es abstraer la complejidad de editar manualmente archivos YAML, facilitando la integración con **ArgoCD** para el despliegue automático en Kubernetes.
+
+### 🚀 Características Actuales
+
+* **Lectura de Datos:** Carga automática de alumnos y catálogo de servicios desde archivos YAML (`alumnos.yaml` y `catalogo-servicios.yaml`).
+* **Interfaz Visual:** Diseño intuitivo basado en Bootstrap 5 que replica un panel de control profesional.
+* **Visualización de Estado:** Muestra qué laboratorios tiene asignados cada alumno.
+* **Diseño Responsive:** Adaptable a dispositivos móviles y escritorio.
+* **Simulación de GitOps:** Interfaz preparada para simular el flujo de Commit & Push (funcionalidad visual).
+
+### 📋 Requisitos Previos
+
+* Python 3.x instalado.
+* Git (opcional, para clonar el repositorio).
+
+### 🛠️ Instalación y Configuración
+
+Debido a las políticas de seguridad de los sistemas operativos modernos (PEP 668), es necesario utilizar un **entorno virtual** para instalar las dependencias y evitar el error `externally-managed-environment`.
+
+Sigue estos pasos en tu terminal:
+
+#### 1. Preparar el proyecto
+Asegúrate de tener la siguiente estructura de archivos en tu carpeta:
+```text
+/tfm-edugitops
+├── app.py
+├── alumnos.yaml
+├── catalogo-servicios.yaml
+├── requirements.txt
+├── README.md
+├── static/
+│   └── style.css
+└── templates/
+    └── index.html
+```
+
+#### 2. Crear y activar el Entorno Virtual (Venv)
+En Linux / macOS:
+
+```Bash
+
+# Crear el entorno virtual llamado 'venv'
+python3 -m venv venv
+
+# Activar el entorno
+source venv/bin/activate
+```
+En Windows:
+
+```Bash
+
+# Crear el entorno
+python -m venv venv
+
+# Activar el entorno
+venv\Scripts\activate
+```
+
+Verás que el prompt de tu terminal cambia indicando (venv). Esto significa que estás dentro del entorno aislado.
+
+#### 3. Instalar Dependencias
+Una vez activo el entorno virtual, instala las librerías necesarias (Flask y PyYAML):
+
+```Bash
+
+pip install -r requirements.txt
+```
+(Si no tienes el archivo requirements.txt, puedes crearlo con el contenido: Flask y PyYAML, o instalar manualmente con pip install Flask PyYAML).
+
+### ▶️ Ejecución
+Asegúrate de que el entorno virtual sigue activo y ejecuta:
+
+```Bash
+python app.py
+```
+Deberías ver una salida similar a:
+
+```text
+
+ * Serving Flask app 'app'
+ * Debug mode: on
+ * Running on [http://127.0.0.1:5000](http://127.0.0.1:5000)
+```
+
+Abre tu navegador web y visita: http://127.0.0.1:5000
+
+### 📂 Estructura del Proyecto
+app.py: Lógica del servidor Flask. Carga los YAML y renderiza la plantilla.
+
+templates/index.html: La estructura HTML de la página usando Jinja2 y Bootstrap.
+
+static/style.css: Estilos personalizados para ajustar la apariencia visual.
+
+*.yaml: Archivos de datos que actúan como base de datos del sistema.
+
+### 🐛 Solución de Problemas
+Error: error: externally-managed-environment Si ves este error, es porque intentaste ejecutar pip install directamente en el sistema sin un entorno virtual. Asegúrate de ejecutar el paso 2 de la instalación (source venv/bin/activate) antes de instalar nada.
+
+Error: FileNotFoundError La aplicación busca alumnos.yaml y catalogo-servicios.yaml en la carpeta raíz. Asegúrate de que los archivos existen y tienen el nombre correcto.
+
+Debido a las políticas de seguridad de los sistemas operativos modernos (PEP 668), es necesario utilizar un **entorno virtual** para instalar las dependencias y evitar el error `externally-managed-environment`.

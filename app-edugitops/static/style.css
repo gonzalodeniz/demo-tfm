@@ -1,0 +1,72 @@
+/* Fondo general sutil */
+body {
+    background-color: #f4f6f8 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Tarjeta del alumno seleccionado en la izquierda */
+.active-student-card {
+    background-color: #e6f2ff !important; /* Azul muy claro */
+    border-color: #8bb9fe !important;
+    color: #000;
+}
+
+/* Inputs con estilo "soft" */
+.form-control {
+    padding: 0.6rem 0.75rem;
+    border-radius: 6px;
+}
+.form-control:read-only {
+    background-color: #e9ecef; /* Gris suave */
+}
+
+/* Tarjetas de servicios (Laboratorios) */
+.service-card {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.service-card:hover {
+    background-color: #f8f9fa;
+}
+
+/* Estilo cuando el lab está seleccionado (checkbox checked) */
+.service-card.selected {
+    background-color: #e6f2ff; /* Fondo azulado */
+    border: 1px solid #72aee6; /* Borde azul */
+}
+
+.service-card .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Badge de Git Status */
+.badge.bg-success-subtle {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important;
+}
+
+/* Botón principal verde */
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+    box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2);
+}
+
+.btn-success:hover {
+    background-color: #157347;
+}
+
+/* Toast flotante de éxito */
+.alert-success {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Layout cards */
+.card {
+    border-radius: 10px;
+}
