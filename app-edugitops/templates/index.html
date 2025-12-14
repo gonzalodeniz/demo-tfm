@@ -123,23 +123,20 @@
                             {% endfor %}
                         </div>
 
-                        <div class="d-flex justify-content-between pt-3 border-top">
+                        <div class="d-flex justify-content-end pt-3 border-top gap-2">
                             {% if current_student.id and current_student.id != 'N/A' %}
-                            <button id="btn-delete-modal-trigger" class="btn btn-outline-danger px-4 py-2 fw-medium" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                                <i class="bi bi-trash me-2"></i>Borrar Alumno
+                            <button id="btn-delete-modal-trigger" class="btn btn-outline-danger px-4 py-2 fw-medium me-auto" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="bi bi-trash me-2"></i>Borrar
                             </button>
-                            {% else %}
-                            <div></div> {% endif %}
+                            {% endif %}
 
-                            <div class="d-flex gap-2">
-                                <button id="btn-save" class="btn btn-primary px-4 py-2 fw-medium">
-                                    <i class="bi bi-save me-2"></i>Guardar
-                                </button>
-                                
-                            <button id="btn-git-push" class="btn btn-success px-4 py-2 fw-medium">
-                                <i class="bi bi-git me-2"></i>Push (Commit)
+                            <button id="btn-save" class="btn btn-primary px-4 py-2 fw-medium">
+                                <i class="bi bi-save me-2"></i>Guardar
                             </button>
-                            </div>
+                            
+                            <button id="btn-git-push" class="btn btn-success px-4 py-2 fw-medium">
+                                <i class="bi bi-cloud-arrow-up me-2"></i>Guardar + Push
+                            </button>
                         </div>
 
                     </div>
@@ -157,7 +154,6 @@
                 </div>
                 <div class="modal-body">
                     <p>¿Estás seguro de que quieres eliminar al alumno <strong>{{ current_student.nombre }}</strong> (ID: {{ current_student.id }})?</p>
-                    <p class="text-muted small">Esta acción no se puede deshacer.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>

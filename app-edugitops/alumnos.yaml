@@ -16,7 +16,3 @@
   check-http:
   - http://prometheus-service.alumno-pepe.svc.cluster.local:9090
   - http://jupyterhub-service.alumno-pepe.svc.cluster.local:8000
-- nombre: alumno-ana
-  id: '003'
-  apps: []
-  check-http: []

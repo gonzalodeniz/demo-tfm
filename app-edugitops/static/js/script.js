@@ -2,30 +2,61 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnSave = document.getElementById('btn-save');
     const btnNew = document.getElementById('btn-new-student');
     const btnConfirmDelete = document.getElementById('btn-confirm-delete');
-    const searchInput = document.getElementById('search-input');
     const btnPush = document.getElementById('btn-git-push');
+    const searchInput = document.getElementById('search-input');
 
-    // --- LÓGICA DE BÚSQUEDA Y PERSISTENCIA ---
-    if (searchInput) {
-        // 1. Restaurar búsqueda anterior si existe (Persistencia al navegar)
-        const savedSearch = sessionStorage.getItem('edu_search_term');
-        if (savedSearch) {
-            searchInput.value = savedSearch;
+    // --- FUNCIÓN REUTILIZABLE DE GUARDADO ---
+    // Retorna una Promesa para poder encadenar el Push después
+    function performSave(showSuccessToast = true) {
+        const studentId = document.getElementById('student-id').value;
+        const studentName = document.getElementById('student-name').value;
+        
+        const checkedBoxes = document.querySelectorAll('.app-checkbox:checked');
+        const selectedApps = Array.from(checkedBoxes).map(cb => cb.value);
+
+        if (!studentName.trim()) {
+            showToast('Error', 'El nombre del alumno no puede estar vacío.', false);
+            return Promise.reject('Validation Error');
         }
 
-        // 2. Evento de filtrado
+        const headerName = document.getElementById('header-student-name');
+        if (headerName) headerName.textContent = studentName;
+
+        return fetch('/save_student', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: studentId,
+                nombre: studentName,
+                apps: selectedApps
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (showSuccessToast) showToast('Guardado', data.message, true);
+                resetSearch(); // Limpiar buscador
+                return data; // Resolvemos promesa con éxito
+            } else {
+                showToast('Error Guardado', data.message, false);
+                throw new Error(data.message); // Rechazamos promesa
+            }
+        });
+    }
+
+    // --- BÚSQUEDA Y PERSISTENCIA ---
+    if (searchInput) {
+        const savedSearch = sessionStorage.getItem('edu_search_term');
+        if (savedSearch) searchInput.value = savedSearch;
+
         searchInput.addEventListener('input', function() {
             const filterValue = this.value.toLowerCase();
-            
-            // Guardar en sesión para que no se pierda al recargar la página (navegar)
             sessionStorage.setItem('edu_search_term', this.value);
-
             const studentItems = document.querySelectorAll('.student-item');
 
             studentItems.forEach(item => {
                 const nameText = item.querySelector('.student-name').textContent.toLowerCase();
                 const idText = item.querySelector('.student-id').textContent.toLowerCase();
-
                 if (nameText.includes(filterValue) || idText.includes(filterValue)) {
                     item.classList.remove('d-none');
                     item.style.display = ''; 
@@ -35,49 +66,31 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // 3. Aplicar el filtro visualmente al cargar si se restauró texto
-        if (savedSearch) {
-            searchInput.dispatchEvent(new Event('input'));
-        }
+        if (savedSearch) searchInput.dispatchEvent(new Event('input'));
     }
 
-    // Función auxiliar para resetear el buscador y limpiar la persistencia
     function resetSearch() {
         if (searchInput) {
             searchInput.value = '';
-            // Esto limpiará también el sessionStorage gracias al evento 'input'
             searchInput.dispatchEvent(new Event('input'));
         }
     }
 
-    // --- Lógica: Nuevo Alumno ---
+    // --- EVENTO: NUEVO ALUMNO ---
     if (btnNew) {
         btnNew.addEventListener('click', function(e) {
-            if (e) e.preventDefault();
-            
-            // Limpiar Buscador (Requisito: borrar al pulsar Nuevo)
+            e.preventDefault();
             resetSearch();
 
-            // Quitar selección visual
             document.querySelectorAll('.active-student-card').forEach(el => {
                 el.classList.remove('active-student-card');
                 el.classList.add('bg-light', 'border-0');
-                const icon = el.querySelector('.avatar-placeholder');
-                if (icon) {
-                    icon.classList.remove('text-primary');
-                    icon.classList.add('text-secondary');
-                }
-                const smallText = el.querySelector('small');
-                if (smallText) {
-                    smallText.classList.remove('text-dark');
-                    smallText.classList.add('text-muted');
-                }
+                el.querySelector('.avatar-placeholder')?.classList.replace('text-primary', 'text-secondary');
+                el.querySelector('small')?.classList.replace('text-dark', 'text-muted');
             });
 
-            // Limpiar formulario y cabecera
             const nameInput = document.getElementById('student-name');
             if (nameInput) nameInput.value = '';
-            
             const headerName = document.getElementById('header-student-name');
             if (headerName) headerName.textContent = ''; 
             
@@ -90,23 +103,78 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('/next_id')
                 .then(res => res.json())
                 .then(data => {
-                    const idInput = document.getElementById('student-id');
-                    if (idInput) idInput.value = data.next_id;
+                    document.getElementById('student-id').value = data.next_id;
                 })
-                .catch(err => console.error("Error obteniendo ID:", err));
+                .catch(err => console.error("Error ID:", err));
             
             window.history.pushState({}, "", "/");
         });
     }
 
-    // --- Lógica: Borrar Alumno ---
+    // --- EVENTO: GUARDAR ---
+    if (btnSave) {
+        btnSave.addEventListener('click', function() {
+            performSave(true).then(() => {
+                // Solo redireccionamos si es un guardado normal (sin push inmediato)
+                setTimeout(() => {
+                    const id = document.getElementById('student-id').value;
+                    window.location.href = "/?id=" + id;
+                }, 1000);
+            }).catch(err => console.error(err));
+        });
+    }
+
+    // --- EVENTO: GUARDAR + PUSH ---
+    if (btnPush) {
+        btnPush.addEventListener('click', function() {
+            const originalText = btnPush.innerHTML;
+            btnPush.disabled = true;
+            btnPush.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+
+            // 1. PRIMERO GUARDAMOS
+            performSave(false) // false para no mostrar toast de guardado, solo el final
+            .then(() => {
+                // 2. SI EL GUARDADO FUE BIEN, HACEMOS PUSH
+                btnPush.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Subiendo a Git...';
+                
+                return fetch('/git_push', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: "Update via Save+Push Button" })
+                });
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Todo Listo', 'Guardado y subido a Gitea correctamente.', true);
+                    // Opcional: Recargar para asegurar estado
+                    setTimeout(() => {
+                        const id = document.getElementById('student-id').value;
+                        window.location.href = "/?id=" + id;
+                    }, 1500);
+                } else {
+                    showToast('Error Git', 'Guardado OK, pero falló Push: ' + data.message, false);
+                }
+            })
+            .catch(err => {
+                // Si falló el guardado o la red
+                console.error(err);
+                if (err.message !== 'Validation Error') { // El error de validación ya mostró su toast
+                     showToast('Error', 'Proceso interrumpido.', false);
+                }
+            })
+            .finally(() => {
+                btnPush.disabled = false;
+                btnPush.innerHTML = originalText;
+            });
+        });
+    }
+
+    // --- EVENTO: BORRAR ---
     if (btnConfirmDelete) {
         btnConfirmDelete.addEventListener('click', function() {
             const studentId = document.getElementById('student-id').value;
-            
-            const modalEl = document.getElementById('deleteModal');
-            const modalInstance = bootstrap.Modal.getInstance(modalEl);
-            modalInstance.hide();
+            bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
 
             fetch('/delete_student', {
                 method: 'POST',
@@ -117,102 +185,16 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     showToast('Eliminado', data.message, true);
-                    
-                    // Limpiar buscador al borrar (Requisito)
                     resetSearch();
-
                     if (data.next_id) {
-                        setTimeout(() => {
-                             window.location.href = "/?id=" + data.next_id;
-                        }, 500);
+                        setTimeout(() => window.location.href = "/?id=" + data.next_id, 500);
                     } else {
-                        const listGroup = document.querySelector('.list-group');
-                        if (listGroup) listGroup.innerHTML = '';
+                        document.querySelector('.list-group').innerHTML = '';
                         if (btnNew) btnNew.click();
                     }
                 } else {
                     showToast('Error', data.message, false);
                 }
-            })
-            .catch(err => showToast('Error', 'Error de conexión', false));
-        });
-    }
-
-    // --- Lógica: Guardar ---
-    if (btnSave) {
-        btnSave.addEventListener('click', function() {
-            const studentId = document.getElementById('student-id').value;
-            const studentName = document.getElementById('student-name').value;
-            
-            const checkedBoxes = document.querySelectorAll('.app-checkbox:checked');
-            const selectedApps = Array.from(checkedBoxes).map(cb => cb.value);
-
-            if (!studentName.trim()) {
-                showToast('Error', 'El nombre del alumno no puede estar vacío.', false);
-                return;
-            }
-
-            const headerName = document.getElementById('header-student-name');
-            if (headerName) headerName.textContent = studentName;
-
-            fetch('/save_student', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: studentId,
-                    nombre: studentName,
-                    apps: selectedApps
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Éxito', data.message, true);
-                    
-                    // Limpiar buscador al guardar (Requisito)
-                    resetSearch();
-
-                    setTimeout(() => {
-                        window.location.href = "/?id=" + studentId;
-                    }, 1000);
-                } else {
-                    showToast('Error', data.message, false);
-                }
-            })
-            .catch(error => {
-                showToast('Error', 'No se pudo conectar con el servidor.', false);
-            });
-        });
-    }
-
-    // --- Lógica: Git Push ---
-    if (btnPush) {
-        btnPush.addEventListener('click', function() {
-            // Feedback visual: Deshabilitar y mostrar spinner
-            const originalText = btnPush.innerHTML;
-            btnPush.disabled = true;
-            btnPush.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Subiendo...';
-
-            fetch('/git_push', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: "Update manual via Web UI" })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Git Sincronizado', data.message, true);
-                } else {
-                    showToast('Error Git', data.message, false);
-                }
-            })
-            .catch(err => {
-                showToast('Error', 'No se pudo conectar con el servidor.', false);
-            })
-            .finally(() => {
-                // Restaurar botón
-                btnPush.disabled = false;
-                btnPush.innerHTML = originalText;
             });
         });
     }
