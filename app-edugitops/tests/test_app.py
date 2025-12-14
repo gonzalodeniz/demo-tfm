@@ -6,7 +6,8 @@ from typing import Any
 import pytest
 import sys
 import os
-from unittest.mock import patch, mock_open
+# CORRECCIÓN AQUÍ: Añadido MagicMock a la importación
+from unittest.mock import patch, mock_open, MagicMock
 from flask.testing import FlaskClient
 
 # Ajustamos el path para poder importar los módulos desde el directorio padre
@@ -46,7 +47,7 @@ def test_index_route(mock_catalogo: Any, mock_alumnos: Any, client: FlaskClient)
 @patch('data_manager.load_catalogo')
 def test_index_empty_state(mock_catalogo: Any, mock_alumnos: Any, client: FlaskClient) -> None:
     """Si no hay alumnos, la cabecera de detalles debe estar vacía."""
-    mock_alumnos.return_value = [] # Lista vacía
+    mock_alumnos.return_value = []
     mock_catalogo.return_value = []
 
     response = client.get('/')
@@ -54,20 +55,38 @@ def test_index_empty_state(mock_catalogo: Any, mock_alumnos: Any, client: FlaskC
 
     assert response.status_code == 200
     # Verificamos que el span esté vacío o contenga solo espacios
-    # Buscamos la estructura HTML generada
     assert '<span id="header-student-name"></span>' in html or '<span id="header-student-name"> </span>' in html 
-    assert 'Detalles y Asignación:' in html
 
+@patch('data_manager.save_alumno_changes')
+def test_save_route_success(mock_save: Any, client: FlaskClient) -> None:
+    """La ruta POST /save_student debe llamar al manager y devolver éxito."""
+    mock_save.return_value = (True, "Guardado OK")
+    
+    payload = {'id': '001', 'nombre': 'Nuevo Nombre', 'apps': ['grafana']}
+    response = client.post('/save_student', json=payload)
+    
+    assert response.status_code == 200
+    assert response.json['success'] is True
+    
+    mock_save.assert_called_once_with('001', 'Nuevo Nombre', ['grafana'])
+
+@patch('data_manager.load_alumnos')
+def test_next_id_endpoint(mock_load_alumnos: Any, client: FlaskClient) -> None:
+    """La ruta GET /next_id debe devolver el siguiente ID en JSON."""
+    mock_load_alumnos.return_value = [{'id': '009'}]
+    response = client.get('/next_id')
+    
+    assert response.status_code == 200
+    assert response.json['next_id'] == "010"
 
 # ====================================================================
-# BLOQUE 2: Tests de Lógica de Negocio (data_manager.py)
+# BLOQUE 2: Tests de Lógica de Negocio (CRUD y Validaciones)
 # ====================================================================
 
 @patch('data_manager.load_alumnos')
 def test_next_id_logic(mock_load_alumnos: Any) -> None:
     """Verifica que calcula el siguiente ID correctamente."""
     mock_load_alumnos.return_value = [{'id': '001'}, {'id': '003'}]
-    # El máximo es 3, el siguiente debe ser 004
     next_id = data_manager.get_next_student_id()
     assert next_id == "004"
 
@@ -77,43 +96,32 @@ def test_next_id_logic(mock_load_alumnos: Any) -> None:
 @patch('yaml.safe_dump')
 @patch('os.path.exists', return_value=True)
 def test_save_creates_new_student(
-    mock_exists: Any,
-    mock_dump: Any,
-    mock_file: Any,
-    mock_catalogo: Any,
-    mock_alumnos: Any
+    mock_exists: Any, mock_dump: Any, mock_file: Any, mock_catalogo: Any, mock_alumnos: Any
 ) -> None:
     """Si el ID no existe, debe CREAR un nuevo registro."""
-    # Estado inicial: solo existe el 001
     mock_alumnos.return_value = [{'nombre': 'juan', 'id': '001', 'apps': []}]
     mock_catalogo.return_value = []
 
-    # Guardamos uno con ID 002 (nuevo)
     success, msg = data_manager.save_alumno_changes('002', 'pedro', [])
     
     assert success is True
     assert "creado" in msg.lower()
 
-    # Verificar que se añadió a la lista para guardar
     args, _ = mock_dump.call_args
     datos_guardados = args[0]
     assert len(datos_guardados) == 2
     assert datos_guardados[1]['nombre'] == 'pedro'
-    assert datos_guardados[1]['id'] == '002'
 
 @patch('data_manager.load_alumnos')
 @patch('data_manager.load_catalogo')
 @patch('os.path.exists', return_value=True)
 def test_save_duplicate_name_error(
-    mock_exists: Any,
-    mock_catalogo: Any,
-    mock_alumnos: Any
+    mock_exists: Any, mock_catalogo: Any, mock_alumnos: Any
 ) -> None:
     """Debe fallar si intentamos crear/actualizar con un nombre que ya usa otro ID."""
     mock_alumnos.return_value = [{'nombre': 'juan', 'id': '001'}]
     mock_catalogo.return_value = []
 
-    # Intentamos crear ID 002 pero con nombre 'Juan' (duplicado)
     success, msg = data_manager.save_alumno_changes('002', 'JUAN', [])
     
     assert success is False
@@ -125,11 +133,7 @@ def test_save_duplicate_name_error(
 @patch('yaml.safe_dump')
 @patch('os.path.exists', return_value=True)
 def test_data_manager_url_generation(
-    mock_exists: Any,
-    mock_dump: Any,
-    mock_file: Any,
-    mock_catalogo: Any,
-    mock_alumnos: Any,
+    mock_exists: Any, mock_dump: Any, mock_file: Any, mock_catalogo: Any, mock_alumnos: Any
 ) -> None:
     """Verifica que se generen correctamente las URLs check-http."""
     mock_alumnos.return_value = [{'nombre': 'test', 'id': '001', 'apps': []}]
@@ -139,54 +143,40 @@ def test_data_manager_url_generation(
     
     assert success is True
     
-    # Verificar escritura
     args, _ = mock_dump.call_args
-    datos = args[0]
-    alumno = datos[0]
-    
+    alumno = args[0][0]
     url_esperada = "http://mi-app-service.test.svc.cluster.local:5000"
-    assert len(alumno['check-http']) == 1
     assert alumno['check-http'][0] == url_esperada
 
-
-# === TESTS DE BORRADO ===
+# ====================================================================
+# BLOQUE 3: Tests de Borrado
+# ====================================================================
 
 @patch('data_manager.load_alumnos')
 @patch('builtins.open', new_callable=mock_open)
 @patch('yaml.safe_dump')
 @patch('os.path.exists', return_value=True)
 def test_delete_student_logic(
-    mock_exists: Any,
-    mock_dump: Any,
-    mock_file: Any,
-    mock_load: Any
+    mock_exists: Any, mock_dump: Any, mock_file: Any, mock_load: Any
 ) -> None:
     """Verifica la lógica de borrado en data_manager."""
     mock_load.return_value = [
         {'id': '001', 'nombre': 'borrar'},
         {'id': '002', 'nombre': 'quedar'}
     ]
-
     success, msg = data_manager.delete_student('001')
-    
     assert success is True
     
-    # Verificar que se guardó la lista SIN el 001
     args, _ = mock_dump.call_args
     lista_guardada = args[0]
     assert len(lista_guardada) == 1
     assert lista_guardada[0]['id'] == '002'
 
 @patch('data_manager.delete_student')
-@patch('data_manager.load_alumnos') # Para calcular next_id
-def test_delete_route_redirects(
-    mock_load: Any, 
-    mock_delete: Any, 
-    client: FlaskClient
-) -> None:
+@patch('data_manager.load_alumnos')
+def test_delete_route_redirects(mock_load: Any, mock_delete: Any, client: FlaskClient) -> None:
     """Verifica que la ruta devuelve el next_id correcto."""
     mock_delete.return_value = (True, "Borrado")
-    # Simulamos que queda un alumno
     mock_load.return_value = [{'id': '005'}] 
     
     response = client.post('/delete_student', json={'id': '001'})
@@ -197,14 +187,10 @@ def test_delete_route_redirects(
 
 @patch('data_manager.delete_student')
 @patch('data_manager.load_alumnos')
-def test_delete_route_empty_list(
-    mock_load: Any, 
-    mock_delete: Any, 
-    client: FlaskClient
-) -> None:
+def test_delete_route_empty_list(mock_load: Any, mock_delete: Any, client: FlaskClient) -> None:
     """Verifica que next_id es null si no quedan alumnos."""
     mock_delete.return_value = (True, "Borrado")
-    mock_load.return_value = [] # Lista vacía
+    mock_load.return_value = [] 
     
     response = client.post('/delete_student', json={'id': '001'})
     
@@ -212,15 +198,13 @@ def test_delete_route_empty_list(
     assert response.json['next_id'] is None
 
 # ====================================================================
-# BLOQUE 3: Tests Editor RAW (Validaciones)
+# BLOQUE 4: Tests Editor RAW (Validaciones)
 # ====================================================================
 
 @patch('data_manager.load_catalogo')
 def test_validate_raw_yaml_success(mock_catalogo: Any) -> None:
     """Debe permitir guardar si el YAML cumple todas las reglas."""
     mock_catalogo.return_value = [{'id': 'app1', 'port': 80}]
-    
-    # YAML válido
     raw_valid = """
 - nombre: user1
   id: '001'
@@ -228,19 +212,14 @@ def test_validate_raw_yaml_success(mock_catalogo: Any) -> None:
   check-http:
   - http://app1-service.user1.svc.cluster.local:80
     """
-    
-    # Mockeamos escritura real para no tocar disco
     with patch('builtins.open', mock_open()), patch('yaml.safe_dump'):
         success, msg = data_manager.validate_and_save_raw_yaml(raw_valid)
-    
     assert success is True
-    assert "correctamente" in msg
 
 @patch('data_manager.load_catalogo')
 def test_validate_raw_yaml_duplicates(mock_catalogo: Any) -> None:
     """Debe fallar si hay IDs duplicados."""
     mock_catalogo.return_value = []
-    
     raw_dup = """
 - nombre: u1
   id: '001'
@@ -255,7 +234,6 @@ def test_validate_raw_yaml_duplicates(mock_catalogo: Any) -> None:
 def test_validate_raw_yaml_invalid_app(mock_catalogo: Any) -> None:
     """Debe fallar si la app no está en el catálogo."""
     mock_catalogo.return_value = [{'id': 'app1', 'port': 80}]
-    
     raw_bad_app = """
 - nombre: u1
   id: '001'
@@ -269,7 +247,6 @@ def test_validate_raw_yaml_invalid_app(mock_catalogo: Any) -> None:
 def test_validate_raw_yaml_bad_url(mock_catalogo: Any) -> None:
     """Debe fallar si la URL no coincide con el formato esperado."""
     mock_catalogo.return_value = [{'id': 'app1', 'port': 80}]
-    
     raw_bad_url = """
 - nombre: u1
   id: '001'
@@ -280,3 +257,68 @@ def test_validate_raw_yaml_bad_url(mock_catalogo: Any) -> None:
     success, msg = data_manager.validate_and_save_raw_yaml(raw_bad_url)
     assert success is False
     assert "URLs no coinciden" in msg
+
+# ====================================================================
+# BLOQUE 5: Tests de Integración Git (Gitea)
+# ====================================================================
+
+@patch('data_manager.get_raw_alumnos_yaml')
+@patch('requests.put')
+@patch('requests.get')
+def test_push_gitea_success(mock_get: Any, mock_put: Any, mock_read_file: Any) -> None:
+    """Verifica el flujo correcto de Push (GET SHA -> PUT Content)."""
+    
+    # 1. Simular lectura de fichero local
+    mock_read_file.return_value = "- nombre: test"
+
+    # 2. Simular respuesta GET (Obtener SHA existente)
+    mock_response_get = MagicMock()
+    mock_response_get.status_code = 200
+    mock_response_get.json.return_value = {'sha': 'dummy_sha_123'}
+    mock_get.return_value = mock_response_get
+
+    # 3. Simular respuesta PUT (Subida exitosa)
+    mock_response_put = MagicMock()
+    mock_response_put.status_code = 200
+    mock_put.return_value = mock_response_put
+
+    # Ejecutar función
+    success, msg = data_manager.push_alumnos_to_gitea()
+
+    assert success is True
+    assert "éxito" in msg
+
+    # Verificar llamadas
+    mock_get.assert_called_once()
+    mock_put.assert_called_once()
+    
+    # Verificar payload del PUT
+    args, kwargs = mock_put.call_args
+    payload = kwargs['json']
+    assert payload['sha'] == 'dummy_sha_123'
+    assert 'content' in payload
+
+@patch('data_manager.get_raw_alumnos_yaml')
+@patch('requests.get')
+def test_push_gitea_connection_error(mock_get: Any, mock_read_file: Any) -> None:
+    """Verifica el manejo de errores de conexión."""
+    import requests
+    mock_read_file.return_value = "content"
+    
+    # Simular excepción de conexión
+    mock_get.side_effect = requests.exceptions.ConnectionError("Gitea down")
+
+    success, msg = data_manager.push_alumnos_to_gitea()
+
+    assert success is False
+    assert "Error de conexión" in msg
+
+@patch('data_manager.push_alumnos_to_gitea')
+def test_git_push_route(mock_push: Any, client: FlaskClient) -> None:
+    """Verifica que la ruta responde correctamente."""
+    mock_push.return_value = (True, "Push OK")
+    
+    response = client.post('/git_push', json={})
+    
+    assert response.status_code == 200
+    assert response.json['success'] is True

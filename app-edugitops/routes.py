@@ -123,3 +123,24 @@ def save_raw_yaml() -> ResponseReturnValue:
         return jsonify({'success': True, 'message': message})
     else:
         return jsonify({'success': False, 'message': message}), 400
+
+
+@main_bp.route('/git_push', methods=['POST'])
+def git_push() -> ResponseReturnValue:
+    """Ejecuta la subida del fichero a Gitea."""
+    
+    # Podríamos recibir un mensaje de commit personalizado del frontend, 
+    # pero usaremos uno por defecto por ahora.
+    data: Any = request.get_json(silent=True)
+    message = "Actualización desde EduGitOps"
+    
+    if isinstance(data, dict) and data.get("message"):
+        message = str(data.get("message"))
+
+    success, msg = data_manager.push_alumnos_to_gitea(commit_message=message)
+
+    if success:
+        return jsonify({'success': True, 'message': msg})
+    else:
+        # 502 Bad Gateway es apropiado para errores de upstream (Gitea)
+        return jsonify({'success': False, 'message': msg}), 502

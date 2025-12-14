@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnNew = document.getElementById('btn-new-student');
     const btnConfirmDelete = document.getElementById('btn-confirm-delete');
     const searchInput = document.getElementById('search-input');
+    const btnPush = document.getElementById('btn-git-push');
 
     // --- LÓGICA DE BÚSQUEDA Y PERSISTENCIA ---
     if (searchInput) {
@@ -180,6 +181,38 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 showToast('Error', 'No se pudo conectar con el servidor.', false);
+            });
+        });
+    }
+
+    // --- Lógica: Git Push ---
+    if (btnPush) {
+        btnPush.addEventListener('click', function() {
+            // Feedback visual: Deshabilitar y mostrar spinner
+            const originalText = btnPush.innerHTML;
+            btnPush.disabled = true;
+            btnPush.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Subiendo...';
+
+            fetch('/git_push', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: "Update manual via Web UI" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Git Sincronizado', data.message, true);
+                } else {
+                    showToast('Error Git', data.message, false);
+                }
+            })
+            .catch(err => {
+                showToast('Error', 'No se pudo conectar con el servidor.', false);
+            })
+            .finally(() => {
+                // Restaurar botón
+                btnPush.disabled = false;
+                btnPush.innerHTML = originalText;
             });
         });
     }
