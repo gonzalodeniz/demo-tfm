@@ -11,8 +11,12 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index() -> ResponseReturnValue:
+    # Cargar datos (puede ser local o actualizado desde git)
     alumnos: list[dict[str, Any]] = data_manager.load_alumnos()
     servicios: list[dict[str, Any]] = data_manager.load_catalogo()
+
+    # --- NUEVO: Obtener el estado global de la sincronización con Git ---
+    git_sync_status = data_manager.GIT_SYNC_STATUS
 
     selected_id: str | None = request.args.get("id")
     current_student: dict[str, Any] | None = None
@@ -38,7 +42,8 @@ def index() -> ResponseReturnValue:
         alumnos=alumnos,
         servicios=servicios,
         current_student=current_student,
-        assigned_apps=assigned_apps
+        assigned_apps=assigned_apps,
+        git_sync_status=git_sync_status  # <--- Pasamos el estado a la plantilla
     )
 
 @main_bp.route('/next_id', methods=['GET'])
@@ -99,8 +104,6 @@ def delete_student() -> ResponseReturnValue:
     else:
         return jsonify({'success': False, 'message': msg}), 400
 
-# --- NUEVAS RUTAS EDITOR RAW ---
-
 @main_bp.route('/editor')
 def editor() -> ResponseReturnValue:
     """Renderiza la vista de edición manual de YAML."""
@@ -114,7 +117,7 @@ def save_raw_yaml() -> ResponseReturnValue:
         return jsonify({"success": False, "message": "JSON inválido."}), 400
 
     raw_text = data.get('content')
-    if raw_text is None: # Puede ser string vacío, así que chequeamos None
+    if raw_text is None: # Puede ser string vacío
         return jsonify({"success": False, "message": "Falta el contenido."}), 400
 
     success, message = data_manager.validate_and_save_raw_yaml(str(raw_text))
@@ -124,13 +127,9 @@ def save_raw_yaml() -> ResponseReturnValue:
     else:
         return jsonify({'success': False, 'message': message}), 400
 
-
 @main_bp.route('/git_push', methods=['POST'])
 def git_push() -> ResponseReturnValue:
     """Ejecuta la subida del fichero a Gitea."""
-    
-    # Podríamos recibir un mensaje de commit personalizado del frontend, 
-    # pero usaremos uno por defecto por ahora.
     data: Any = request.get_json(silent=True)
     message = "Actualización desde EduGitOps"
     

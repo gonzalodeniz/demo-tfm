@@ -6,6 +6,7 @@ GITEA_API_URL = os.getenv("GITEA_API_URL", "http://localhost:3000/api/v1")
 GITEA_REPO_OWNER = os.getenv("GITEA_REPO_OWNER", "admin")
 GITEA_REPO_NAME = os.getenv("GITEA_REPO_NAME", "demo-tfm")
 GITEA_FILE_PATH = "app-edugitops/alumnos.yaml"
+GITEA_CATALOGO_PATH = os.getenv("GITEA_CATALOGO_PATH", "app-edugitops/catalogo-servicios.yaml")
 GITEA_BRANCH = os.getenv("GITEA_BRANCH", "main")
 
 # Credenciales

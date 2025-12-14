@@ -14,6 +14,9 @@ BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
 ALUMNOS_FILE: str = os.path.join(BASE_DIR, "alumnos.yaml")
 CATALOGO_FILE: str = os.path.join(BASE_DIR, "catalogo-servicios.yaml")
 
+# Variable global para almacenar el estado de la sincro con Gitea
+GIT_SYNC_STATUS: bool = False
+
 YamlItem = dict[str, Any]
 YamlData = list[YamlItem]
 
@@ -59,6 +62,51 @@ def get_raw_alumnos_yaml() -> str:
     except Exception:
         return ""
 
+def _download_file_from_gitea(remote_path: str, local_path: str) -> bool:
+    """Descarga un fichero de Gitea y sobrescribe el local."""
+    api_url = f"{config.GITEA_API_URL}/repos/{config.GITEA_REPO_OWNER}/{config.GITEA_REPO_NAME}/contents/{remote_path}"
+    auth_creds = (config.GITEA_USER, config.GITEA_PASSWORD)
+    params = {'ref': config.GITEA_BRANCH}
+
+    try:
+        print(f"DEBUG: Descargando {remote_path} de Gitea...")
+        response = requests.get(api_url, auth=auth_creds, params=params, timeout=5)
+        
+        if response.status_code == 200:
+            content_b64 = response.json().get('content', '')
+            file_content = base64.b64decode(content_b64).decode('utf-8')
+            
+            # Sobrescribimos el fichero local
+            with open(local_path, 'w', encoding='utf-8') as f:
+                f.write(file_content)
+            print(f"DEBUG: {remote_path} actualizado correctamente.")
+            return True
+        else:
+            print(f"DEBUG: Fallo al descargar {remote_path}. Status: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"DEBUG: Excepción al descargar {remote_path}: {e}")
+        return False
+
+def sync_files_from_gitea() -> bool:
+    """
+    Intenta descargar alumnos.yaml y catalogo-servicios.yaml.
+    Actualiza la variable global GIT_SYNC_STATUS.
+    """
+    global GIT_SYNC_STATUS
+    
+    # Intentamos descargar ambos. Si uno falla, consideramos que la sincro falló
+    # para evitar inconsistencias.
+    success_alumnos = _download_file_from_gitea(config.GITEA_FILE_PATH, ALUMNOS_FILE)
+    success_catalogo = _download_file_from_gitea(config.GITEA_CATALOGO_PATH, CATALOGO_FILE)
+    
+    if success_alumnos and success_catalogo:
+        GIT_SYNC_STATUS = True
+        return True
+    else:
+        GIT_SYNC_STATUS = False
+        return False
 
 def get_next_student_id() -> str:
     """Calcula el siguiente ID disponible basado en los existentes."""
