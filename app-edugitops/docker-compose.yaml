@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   k8s-viewer:
     build: .
@@ -10,6 +8,7 @@ services:
     environment:
       - PORT=5001
       - FLASK_ENV=development
+      - PYTHONPATH=/app/src
 
     volumes:
       # Configuración de Kubernetes (apunta a minikube o eks según tu contexto local)
@@ -17,4 +16,4 @@ services:
       # Certificados de Minikube (Ruta espejo para evitar error de rutas absolutas)
       - ${HOME}/.minikube:${HOME}/.minikube
       # Código en caliente
-      - ./app.py:/app/app.py
+      - ./src:/app/src

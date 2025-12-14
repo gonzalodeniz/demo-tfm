@@ -11,3 +11,7 @@ GITEA_BRANCH = os.getenv("GITEA_BRANCH", "main")
 # Credenciales
 GITEA_USER = os.getenv("GITEA_USER", "admin")
 GITEA_PASSWORD = os.getenv("GITEA_PASSWORD", "admin123")
+
+# Configuración de la Aplicación Flask
+FLASK_PORT = int(os.getenv("FLASK_PORT", 5001))
+FLASK_DEBUG = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1", "t")
