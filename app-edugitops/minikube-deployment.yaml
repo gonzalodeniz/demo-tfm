@@ -8,8 +8,8 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: flask-minikube-sa
-  namespace: app-edugitops  # <--- CAMBIO: Asignado al nuevo namespace
+  name: app-edugitops-sa      # CAMBIO: flask-minikube-sa -> app-edugitops-sa
+  namespace: app-edugitops
 ---
 # --- 2. Permisos (RBAC) ---
 # El ClusterRole es global, no lleva namespace
@@ -28,8 +28,8 @@ metadata:
   name: service-viewer-binding
 subjects:
 - kind: ServiceAccount
-  name: flask-minikube-sa
-  namespace: app-edugitops # <--- CAMBIO: Apunta a la SA en el namespace correcto
+  name: app-edugitops-sa      # CAMBIO: Coincide con el nuevo nombre del SA
+  namespace: app-edugitops
 roleRef:
   kind: ClusterRole
   name: service-viewer-role
@@ -39,21 +39,21 @@ roleRef:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flask-k8s-app
-  namespace: app-edugitops # <--- CAMBIO: Despliegue en el namespace
+  name: app-edugitops         # CAMBIO: flask-k8s-app -> app-edugitops
+  namespace: app-edugitops
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: flask-k8s
+      app: app-edugitops      # CAMBIO: flask-k8s -> app-edugitops
   template:
     metadata:
       labels:
-        app: flask-k8s
+        app: app-edugitops    # CAMBIO: flask-k8s -> app-edugitops
     spec:
-      serviceAccountName: flask-minikube-sa
+      serviceAccountName: app-edugitops-sa # CAMBIO: flask-minikube-sa -> app-edugitops-sa
       containers:
-      - name: flask
+      - name: app-edugitops   # CAMBIO: flask -> app-edugitops (por coherencia)
         image: soygonzalodeniz/app-edugitops:1.0
         imagePullPolicy: IfNotPresent 
         ports:
@@ -64,7 +64,7 @@ spec:
         
         # Variables de Gitea (Asegúrate de que sean correctas para tu entorno)
         - name: GITEA_API_URL
-          value: "http://host.minikube.internal:3000/api/v1" 
+          value: "http://gitea.gitea.svc.cluster.local:3000/api/v1" 
         - name: GITEA_REPO_OWNER
           value: "admin"
         - name: GITEA_REPO_NAME
@@ -76,18 +76,18 @@ spec:
         - name: GITEA_USER
           value: "admin"
         - name: GITEA_PASSWORD 
-          value: "tu_password_real" 
+          value: "admin123" 
 ---
 # --- 4. Acceso de Red (Service) ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: app-edugitops       # <--- CAMBIO: Servicio renombrado
-  namespace: app-edugitops  # <--- CAMBIO: Servicio en el namespace
+  name: app-edugitops
+  namespace: app-edugitops
 spec:
   type: NodePort
   selector:
-    app: flask-k8s
+    app: app-edugitops        # CAMBIO: flask-k8s -> app-edugitops (Vital para que encuentre los pods)
   ports:
     - protocol: TCP
       port: 5001      
