@@ -1,17 +1,25 @@
+# --- 0. Creación del Namespace (Nuevo) ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: app-edugitops
+---
 # --- 1. Identidad (ServiceAccount) ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: flask-minikube-sa
+  namespace: app-edugitops  # <--- CAMBIO: Asignado al nuevo namespace
 ---
 # --- 2. Permisos (RBAC) ---
+# El ClusterRole es global, no lleva namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: service-viewer-role
 rules:
-- apiGroups: [""]
-  resources: ["services"] # Permitimos leer servicios
+- apiGroups: ["", "apps"]
+  resources: ["services", "pods", "deployments", "nodes", "namespaces"] 
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -21,7 +29,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: flask-minikube-sa
-  namespace: default
+  namespace: app-edugitops # <--- CAMBIO: Apunta a la SA en el namespace correcto
 roleRef:
   kind: ClusterRole
   name: service-viewer-role
@@ -32,6 +40,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: flask-k8s-app
+  namespace: app-edugitops # <--- CAMBIO: Despliegue en el namespace
 spec:
   replicas: 1
   selector:
@@ -42,28 +51,45 @@ spec:
       labels:
         app: flask-k8s
     spec:
-      serviceAccountName: flask-minikube-sa # <--- Importante: Usamos la identidad con permisos
+      serviceAccountName: flask-minikube-sa
       containers:
       - name: flask
-        image: flask-k8s-client:local # Nombre de tu imagen local
-        imagePullPolicy: Never        # <--- TRUCO: Obliga a usar la imagen local de Minikube
+        image: soygonzalodeniz/app-edugitops:1.0
+        imagePullPolicy: IfNotPresent 
         ports:
         - containerPort: 5001
         env:
-        - name: PORT
+        - name: FLASK_PORT
           value: "5001"
+        
+        # Variables de Gitea (Asegúrate de que sean correctas para tu entorno)
+        - name: GITEA_API_URL
+          value: "http://host.minikube.internal:3000/api/v1" 
+        - name: GITEA_REPO_OWNER
+          value: "admin"
+        - name: GITEA_REPO_NAME
+          value: "demo-tfm"
+        - name: GITEA_FILE_PATH
+          value: "app-edugitops/alumnos.yaml"
+        - name: GITEA_BRANCH
+          value: "main"
+        - name: GITEA_USER
+          value: "admin"
+        - name: GITEA_PASSWORD 
+          value: "tu_password_real" 
 ---
 # --- 4. Acceso de Red (Service) ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask-k8s-service
+  name: app-edugitops       # <--- CAMBIO: Servicio renombrado
+  namespace: app-edugitops  # <--- CAMBIO: Servicio en el namespace
 spec:
-  type: NodePort # El modo estándar para exponer en Minikube
+  type: NodePort
   selector:
     app: flask-k8s
   ports:
     - protocol: TCP
-      port: 80      # Puerto en el servicio
-      targetPort: 5001 # Puerto en el contenedor
-      #  nodePort: 30001 # Puerto fijo para acceder desde tu navegador (opcional, pero útil)
+      port: 5001      
+      targetPort: 5001
+      # nodePort: 30001 # Opcional

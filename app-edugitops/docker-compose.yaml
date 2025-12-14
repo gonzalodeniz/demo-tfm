@@ -1,5 +1,6 @@
 services:
   k8s-viewer:
+    image: soygonzalodeniz/app-edugitops:1.0
     build: .
     container_name: flask_k8s_local
     # Host network para ver Minikube sin problemas de IP
