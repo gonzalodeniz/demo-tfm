@@ -74,7 +74,7 @@ spec:
         - name: GITEA_CATALOGO_PATH
           value: "app-edugitops/src/catalogo-servicios.yaml"          
         - name: GITEA_BRANCH
-          value: "main"
+          value: "gonzalo"
         - name: GITEA_USER
           value: "admin"
         - name: GITEA_PASSWORD 
