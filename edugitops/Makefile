@@ -27,6 +27,7 @@ help:
 	@echo ""
 	@echo "Minikube"
 	@echo "------------------------"
+	@echo "  make start-minikube   - Inicia Minikube con Calico CNI"
 	@echo "  make expose   - Expone gitea, checkmk, argocd y app-edugitops vía port-forward."
 	@echo ""
 
@@ -63,6 +64,10 @@ app-edugitops:
 
 stack: argocd gitea checkmk app-edugitops
 	@echo "Todos los despliegues completados."
+
+start-minikube:
+	@echo "Iniciando Minikube con Calico CNI..."
+	minikube start --cni=calico
 
 expose:
 	@bash -c 'set -e; \
