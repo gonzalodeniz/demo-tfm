@@ -54,7 +54,7 @@ spec:
       serviceAccountName: app-edugitops-sa # CAMBIO: flask-minikube-sa -> app-edugitops-sa
       containers:
       - name: app-edugitops   # CAMBIO: flask -> app-edugitops (por coherencia)
-        image: soygonzalodeniz/app-edugitops:1.0
+        image: soygonzalodeniz/app-edugitops:1.2
         imagePullPolicy: IfNotPresent 
         ports:
         - containerPort: 5001
@@ -64,13 +64,15 @@ spec:
         
         # Variables de Gitea (Asegúrate de que sean correctas para tu entorno)
         - name: GITEA_API_URL
-          value: "http://gitea.gitea.svc.cluster.local:3000/api/v1" 
+          value: "http://gitea.gitea.svc.cluster.local:80/api/v1" 
         - name: GITEA_REPO_OWNER
           value: "admin"
         - name: GITEA_REPO_NAME
           value: "demo-tfm"
         - name: GITEA_FILE_PATH
-          value: "app-edugitops/alumnos.yaml"
+          value: "app-edugitops/src/alumnos.yaml"
+        - name: GITEA_CATALOGO_PATH
+          value: "app-edugitops/src/catalogo-servicios.yaml"          
         - name: GITEA_BRANCH
           value: "main"
         - name: GITEA_USER
