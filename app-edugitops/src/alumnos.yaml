@@ -14,3 +14,15 @@
   check-http:
   - http://prometheus-service.alumno-pepe.svc.cluster.local:9090
   - http://jupyterhub-service.alumno-pepe.svc.cluster.local:8000
+- nombre: alumno-ana
+  id: '003'
+  apps: []
+  check-http: []
+- nombre: alumno-maria
+  id: '004'
+  apps:
+  - prometheus
+  - jupyterhub
+  check-http:
+  - http://prometheus-service.alumno-maria.svc.cluster.local:9090
+  - http://jupyterhub-service.alumno-maria.svc.cluster.local:8000
