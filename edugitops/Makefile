@@ -75,7 +75,8 @@ stack: argocd gitea checkmk app-edugitops
 	@echo "Todos los despliegues completados."
 
 # Sincronización de laboratorios
-sincro: @bash -c "set -a && source .env && set +a && envsubst '\$$GITEA_REPO_URL \$$GITOPS_BASE_PATH' < labs/applicationset.yaml | kubectl apply -f - -n argocd"
+sincro:
+	@bash -c "set -a && source .env && set +a && envsubst '\$$GITEA_REPO_URL \$$GITOPS_BASE_PATH' < labs/applicationset.yaml | kubectl apply -f - -n argocd"
 
 # Minikube
 
