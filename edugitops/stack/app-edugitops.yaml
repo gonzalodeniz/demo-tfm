@@ -70,9 +70,9 @@ spec:
         - name: GITEA_REPO_NAME
           value: "demo-tfm"
         - name: GITEA_FILE_PATH
-          value: "app-edugitops/src/alumnos.yaml"
+          value: "edugitops/alumnos.yaml"
         - name: GITEA_CATALOGO_PATH
-          value: "app-edugitops/src/catalogo-servicios.yaml"          
+          value: "edugitops/catalogo-servicios.yaml"          
         - name: GITEA_BRANCH
           value: "gonzalo"
         - name: GITEA_USER

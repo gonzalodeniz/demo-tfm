@@ -1,4 +1,4 @@
 apiVersion: v2
-name: student-base
+name: edugitops-base
 version: 1.0.0
 description: Plantilla base para despliegues de alumnos
