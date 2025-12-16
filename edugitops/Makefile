@@ -68,15 +68,16 @@ checkmk:
 	kubectl apply -f ./stack/checkmk.yaml
 
 app-edugitops:
-	@echo "Desplegando app-edugitops..."
-	kubectl apply -f ./stack/app-edugitops.yaml
+	@echo "Desplegando app-edugitops con configuración del .env..."
+	@bash -c "set -a && source .env && set +a && envsubst '\$$GITEA_BRANCH' < ./stack/app-edugitops.yaml | kubectl apply -f -"
 
 stack: argocd gitea checkmk app-edugitops
 	@echo "Todos los despliegues completados."
 
 # Sincronización de laboratorios
 sincro:
-	@bash -c "set -a && source .env && set +a && envsubst '\$$GITEA_REPO_URL \$$GITOPS_BASE_PATH' < labs/applicationset.yaml | kubectl apply -f - -n argocd"
+	@echo "Sincronizando ArgoCD..."
+	@bash -c "set -a && source .env && set +a && envsubst '\$$GITEA_REPO_URL \$$GITOPS_BASE_PATH \$$GITEA_BRANCH' < labs/applicationset.yaml | kubectl apply -f - -n argocd"
 
 # Minikube
 

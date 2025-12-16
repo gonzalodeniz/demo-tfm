@@ -1,7 +1,20 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: repo-gitea-credentials
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  # NOTA: Asegúrate de que esta URL coincide exactamente con la del ApplicationSet
+  url: http://gitea.gitea.svc.cluster.local:80/admin/demo-tfm.git
+  username: admin
+  password: admin123
+---
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name:edugitops-appset
+  name: edugitops-appset
   namespace: argocd
 spec:
   goTemplate: true
@@ -10,7 +23,7 @@ spec:
   generators:
     - git:
         repoURL: ${GITEA_REPO_URL}
-        revision: HEAD
+        revision: ${GITEA_BRANCH}
         files:
           - path: ${GITOPS_BASE_PATH}/alumnos.yaml
 
@@ -23,8 +36,8 @@ spec:
       project: default
       source:
         repoURL: ${GITEA_REPO_URL}
-        targetRevision: HEAD
-        path: ${GITOPS_BASE_PATH}/base
+        targetRevision: ${GITEA_BRANCH}
+        path: ${GITOPS_BASE_PATH}/labs/base
         helm:
           releaseName: '{{.nombre}}'
           parameters:
