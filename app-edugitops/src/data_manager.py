@@ -96,10 +96,10 @@ def sync_files_from_gitea() -> bool:
     """
     global GIT_SYNC_STATUS
     
-    # Intentamos descargar ambos. Si uno falla, consideramos que la sincro falló
-    # para evitar inconsistencias.
-    success_alumnos = _download_file_from_gitea(config.GITEA_FILE_PATH, ALUMNOS_FILE)
-    success_catalogo = _download_file_from_gitea(config.GITEA_CATALOGO_PATH, CATALOGO_FILE)
+    # MODIFICACIÓN: Usamos las rutas REMOTAS (_REMOTE) para pedir a la API,
+    # pero guardamos en las rutas locales constantes (ALUMNOS_FILE, CATALOGO_FILE).
+    success_alumnos = _download_file_from_gitea(config.GITEA_FILE_PATH_REMOTE, ALUMNOS_FILE)
+    success_catalogo = _download_file_from_gitea(config.GITEA_CATALOGO_PATH_REMOTE, CATALOGO_FILE)
     
     if success_alumnos and success_catalogo:
         GIT_SYNC_STATUS = True
@@ -299,14 +299,14 @@ def push_alumnos_to_gitea(commit_message: str = "Update alumnos.yaml from EduGit
     """
     Sube el contenido actual de alumnos.yaml local al repositorio Gitea.
     """
-    # 1. Leer contenido local
+    # 1. Leer contenido local (Usa la ruta local definida al inicio del archivo)
     content_yaml = get_raw_alumnos_yaml()
     if not content_yaml:
         return False, "El fichero local alumnos.yaml está vacío o no existe."
 
-    # 2. Configurar URL y Autenticación desde config.py
-    # Asegúrate de que GITEA_FILE_PATH en config.py sea correcto (ej: "app-edugitops/alumnos.yaml")
-    api_url = f"{config.GITEA_API_URL}/repos/{config.GITEA_REPO_OWNER}/{config.GITEA_REPO_NAME}/contents/{config.GITEA_FILE_PATH}"
+    # 2. Configurar URL usando la RUTA REMOTA
+    # MODIFICACIÓN: Usamos GITEA_FILE_PATH_REMOTE para apuntar a edugitops/alumnos.yaml
+    api_url = f"{config.GITEA_API_URL}/repos/{config.GITEA_REPO_OWNER}/{config.GITEA_REPO_NAME}/contents/{config.GITEA_FILE_PATH_REMOTE}"
     
     # --- DEBUG ---
     print(f"DEBUG: Intentando conectar a: {api_url}")
@@ -317,15 +317,12 @@ def push_alumnos_to_gitea(commit_message: str = "Update alumnos.yaml from EduGit
 
     try:
         # 3. Obtener SHA del archivo remoto
-        # IMPORTANTE: Pasamos el parámetro 'ref' para especificar la rama.
         params = {'ref': config.GITEA_BRANCH}
         
         print("DEBUG: Solicitando SHA actual...")
         response_get = requests.get(api_url, auth=auth_creds, params=params, timeout=5)
         
         sha = None
-        
-        print(f"DEBUG: Respuesta GET Status: {response_get.status_code}")
         
         if response_get.status_code == 200:
             data_json = response_get.json()
@@ -334,7 +331,6 @@ def push_alumnos_to_gitea(commit_message: str = "Update alumnos.yaml from EduGit
         elif response_get.status_code == 404:
             print("DEBUG: Archivo no encontrado en remoto (Se creará uno nuevo).")
         else:
-            print(f"DEBUG: Error GET body: {response_get.text}")
             return False, f"Error al consultar Gitea ({response_get.status_code}): {response_get.text}"
 
         # 4. Codificar contenido en Base64
@@ -347,7 +343,6 @@ def push_alumnos_to_gitea(commit_message: str = "Update alumnos.yaml from EduGit
             "branch": config.GITEA_BRANCH,
         }
         
-        # AQUÍ ES DONDE FALLABA: Si el archivo existe, SHA es obligatorio
         if sha:
             data["sha"] = sha
 
@@ -359,13 +354,8 @@ def push_alumnos_to_gitea(commit_message: str = "Update alumnos.yaml from EduGit
             print("DEBUG: Push exitoso.")
             return True, "Push realizado con éxito a Gitea."
         else:
-            print(f"DEBUG: Error PUT Status: {response_put.status_code}")
-            print(f"DEBUG: Error PUT Body: {response_put.text}")
             return False, f"Error en Push ({response_put.status_code}): {response_put.text}"
 
-    except requests.exceptions.RequestException as e:
-        print(f"DEBUG: Excepción Request: {e}")
-        return False, f"Error de conexión con Gitea: {str(e)}"
     except Exception as e:
         print(f"DEBUG: Excepción General: {e}")
         return False, f"Error inesperado: {str(e)}"
