@@ -7,9 +7,9 @@ metadata:
     argocd.argoproj.io/secret-type: repository
 stringData:
   # NOTA: Asegúrate de que esta URL coincide exactamente con la del ApplicationSet
-  url: http://gitea.gitea.svc.cluster.local:80/admin/demo-tfm.git
-  username: admin
-  password: admin123
+  url: ${GITEA_REPO_URL}
+  username: ${GITEA_USER}
+  password: ${GITEA_PASSWORD}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet

@@ -54,7 +54,7 @@ spec:
       serviceAccountName: app-edugitops-sa # CAMBIO: flask-minikube-sa -> app-edugitops-sa
       containers:
       - name: app-edugitops   # CAMBIO: flask -> app-edugitops (por coherencia)
-        image: soygonzalodeniz/app-edugitops:1.3
+        image: soygonzalodeniz/app-edugitops:1.4
         imagePullPolicy: IfNotPresent 
         ports:
         - containerPort: 5001
