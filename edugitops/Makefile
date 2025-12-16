@@ -25,12 +25,20 @@ help:
 	@echo "  make app-edugitops    - Despliega app-edugitops"
 	@echo "  make stack            - Despliega el stack completo"
 	@echo ""
+	@echo "Sincronización de laboratorios"
+	@echo "------------------------"
+	@echo "  make sincro           - Sincroniza alumnos y aplica ApplicationSet en ArgoCD"
+	@echo "  make delete           - Elimina el ApplicationSet y las reglas de monitorización"
+	@echo "  make urls             - Muestra las URLs configuradas en .env"
+	@echo "  make passwords        - Muestra contraseñas de Argo CD, Gitea y Checkmk"
+	@echo ""
 	@echo "Minikube"
 	@echo "------------------------"
 	@echo "  make start-minikube   - Inicia Minikube con Calico CNI"
 	@echo "  make expose   - Expone gitea, checkmk, argocd y app-edugitops vía port-forward."
 	@echo ""
 
+# Gestión de contextos de kubectl
 list-contexts:
 	kubectl config get-contexts
 
@@ -46,6 +54,7 @@ use-eks:
 	@echo "Cambiando contexto al clúster EKS..."
 	kubectl config use-context $(EKS_CONTEXT)
 
+# Despliegues del stack
 argocd:
 	@echo "Desplegando ArgoCD..."
 	./stack/argocd.sh
@@ -64,6 +73,11 @@ app-edugitops:
 
 stack: argocd gitea checkmk app-edugitops
 	@echo "Todos los despliegues completados."
+
+# Sincronización de laboratorios
+sincro: @bash -c "set -a && source .env && set +a && envsubst '\$$GITEA_REPO_URL \$$GITOPS_BASE_PATH' < labs/applicationset.yaml | kubectl apply -f - -n argocd"
+
+# Minikube
 
 start-minikube:
 	@echo "Iniciando Minikube con Calico CNI..."

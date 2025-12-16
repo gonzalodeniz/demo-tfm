@@ -12,8 +12,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 if [[ -f "${PROJECT_ROOT}/.env" ]]; then set -a; . "${PROJECT_ROOT}/.env"; set +a; fi
 
 # 4. Definir la ruta del fichero alumnos.yaml
-# NOTA: Según tu captura, está dentro de 'src'. Si decidiste dejarlo fuera, quita '/src'
-ALUMNOS_FILE="${PROJECT_ROOT}/src/alumnos.yaml"
+# CORREGIDO: Apunta directamente a la raíz, sin 'src'
+ALUMNOS_FILE="${PROJECT_ROOT}/alumnos.yaml"
 
 GIT_REMOTE="${GIT_REMOTE:-${GITEA_REMOTE_NAME:-gitea}}"
 REMOTE_URL="${GITEA_REPO_URL:-}"

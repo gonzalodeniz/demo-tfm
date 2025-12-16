@@ -15,11 +15,8 @@ help:
 	@echo "  make urls     - Muestra las URLs configuradas en .env (Gitea, Checkmk, Argo CD)."
 	@echo "  make passwords- Muestra contraseñas de Argo CD, Gitea y Checkmk."
 
-sincro:
-	# El script ahora sabe encontrar la ruta correcta
-	bash scripts/push-alumnos.sh
-	# Comentado según tu original, pero actualizado por si acaso:
-	# @bash -c "set -a && source ../.env && set +a && envsubst '\$$GITEA_REPO_URL \$$GITOPS_BASE_PATH' < applicationset-env.yaml | kubectl apply -f - -n argocd"
+sincro:	
+	@bash -c "set -a && source ../.env && set +a && envsubst '\$$GITEA_REPO_URL \$$GITOPS_BASE_PATH' < applicationset.yaml | kubectl apply -f - -n argocd"
 	# python3 scripts/monitoriza-laboratorios.py
 
 delete:

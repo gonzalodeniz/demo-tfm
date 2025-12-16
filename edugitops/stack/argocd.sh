@@ -1,63 +1,70 @@
 #!/bin/bash
 
-# Detener el script si ocurre algún error
+# Detener ante cualquier error
 set -e
 
 NAMESPACE="argocd"
 URL_MANIFEST="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
 
 echo "=================================================="
-echo "🚀 Iniciando instalación de ArgoCD en EKS"
+echo "🚀 Iniciando instalación de ArgoCD (Modo Híbrido)"
 echo "=================================================="
 
-# 1. Crear el Namespace (si no existe)
-echo "[1/5] Verificando namespace '$NAMESPACE'..."
+# --- 1. DETECCIÓN DE ENTORNO ---
+# Comprobamos si el contexto actual o los nodos indican que es Minikube
+if kubectl get node minikube &> /dev/null; then
+    ENV_TYPE="MINIKUBE"
+    echo "📍 Entorno detectado: MINIKUBE (Local)"
+else
+    ENV_TYPE="EKS"
+    echo "📍 Entorno detectado: EKS / AWS (Nube)"
+fi
+
+# --- 2. INSTALACIÓN ---
+echo "[1/4] Creando namespace '$NAMESPACE'..."
 kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
-# 2. Instalar ArgoCD desde el repositorio oficial
-echo "[2/5] Aplicando manifiestos oficiales..."
+echo "[2/4] Aplicando manifiestos oficiales..."
 kubectl apply -n $NAMESPACE -f $URL_MANIFEST
 
-# 3. Parchear el servicio para usar LoadBalancer
-# Esta es la forma más limpia de modificar un manifiesto externo sin editar el archivo.
-echo "[3/5] Configurando Service como LoadBalancer..."
-kubectl patch svc argocd-server -n $NAMESPACE -p '{"spec": {"type": "LoadBalancer"}}'
+# --- 3. CONFIGURACIÓN DEL SERVICIO ---
+if [ "$ENV_TYPE" = "EKS" ]; then
+    echo "[3/4] [EKS] Configurando Service como LoadBalancer..."
+    kubectl patch svc argocd-server -n $NAMESPACE -p '{"spec": {"type": "LoadBalancer"}}'
+    
+    echo "      Esperando a que AWS asigne el Hostname del LoadBalancer (puede tardar)..."
+    until kubectl get svc argocd-server -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' &> /dev/null
+    do
+        printf "."
+        sleep 5
+    done
+    echo ""
+    LB_HOST=$(kubectl get svc argocd-server -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+    UI_URL="https://$LB_HOST"
+else
+    echo "[3/4] [MINIKUBE] Configurando Service como NodePort..."
+    # Usamos NodePort para facilitar acceso si falla el port-forward, aunque el Makefile usa port-forward.
+    kubectl patch svc argocd-server -n $NAMESPACE -p '{"spec": {"type": "NodePort"}}'
+    UI_URL="https://localhost:8080 (Requiere 'make expose' o port-forward)"
+fi
 
-# (Opcional) Si prefieres un Network Load Balancer (NLB) de AWS en lugar del Classic,
-# descomenta la siguiente línea:
-# kubectl annotate svc argocd-server -n $NAMESPACE service.beta.kubernetes.io/aws-load-balancer-type="nlb" --overwrite
-
-# 4. Esperar a que el Load Balancer tenga una IP/Hostname asignado
-echo "[4/5] Esperando a que AWS provisione el Load Balancer (esto puede tardar unos minutos)..."
-until kubectl get svc argocd-server -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' &> /dev/null
-do
-    printf "."
+# --- 4. CREDENCIALES ---
+echo "[4/4] Esperando a que el secret de admin esté disponible..."
+# Esperamos un poco a que el secret se genere tras el despliegue
+sleep 5
+until kubectl -n $NAMESPACE get secret argocd-initial-admin-secret &> /dev/null; do
+    echo "      Esperando creación de secretos..."
     sleep 5
 done
-echo ""
-LB_HOSTNAME=$(kubectl get svc argocd-server -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
-# 5. Obtener la contraseña inicial de admin
-echo "[5/5] Recuperando credenciales iniciales..."
-# Esperar a que el secret esté disponible
-sleep 2
 ADMIN_PASSWORD=$(kubectl -n $NAMESPACE get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
-sleep 5
 echo ""
 echo "=================================================="
-echo "✅ Instalación completada con éxito"
+echo "✅ Instalación completada"
 echo "=================================================="
-echo ""
-echo "📂 Acceso a la UI:"
-echo "   URL: https://$LB_HOSTNAME"
-echo ""
-echo "🔑 Credenciales:"
-echo "   Usuario: admin"
-echo "   Password: $ADMIN_PASSWORD"
-echo ""
-echo "⚠️ Nota: El DNS de AWS puede tardar unos minutos en propagarse."
-echo ""
-echo " Para visualizar la URL del Load Balancer en cualquier momento, ejecuta:"
-echo "   kubectl get svc -n argocd|grep LoadBalancer"
+echo "🌍 Entorno: $ENV_TYPE"
+echo "📂 UI ArgoCD: $UI_URL"
+echo "👤 Usuario:   admin"
+echo "🔑 Password:  $ADMIN_PASSWORD"
 echo "=================================================="
