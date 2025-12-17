@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 if (showSuccessToast) showToast('Guardado', data.message, true);
+                // Si se guarda bien, quitamos el color de fondo
+                if (nameInput) nameInput.classList.remove('input-highlight');
                 resetSearch(); // Limpiar buscador
                 return data; // Resolvemos promesa con éxito
             } else {
@@ -90,7 +92,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const nameInput = document.getElementById('student-name');
-            if (nameInput) nameInput.value = '';
+            if (nameInput) {
+                nameInput.value = '';
+                nameInput.classList.add('input-highlight'); // Añadimos color
+                nameInput.focus(); // Ponemos el cursor dentro automáticamente
+            }
             const headerName = document.getElementById('header-student-name');
             if (headerName) headerName.textContent = ''; 
             

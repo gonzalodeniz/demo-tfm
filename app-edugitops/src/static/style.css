@@ -70,3 +70,10 @@ body {
 .card {
     border-radius: 10px;
 }
+
+/* Clase para resaltar el input cuando se crea un nuevo alumno */
+.input-highlight {
+    background-color: #fff9c4 !important; /* Amarillo pastel muy suave */
+    border-color: #ffecb3 !important;      /* Borde sutilmente más oscuro */
+    transition: background-color 0.5s ease, border-color 0.5s ease;
+}
