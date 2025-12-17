@@ -11,18 +11,6 @@
   port: 3000
   icon: bi-speedometer2
   color_class: text-warning
-- nombre: JupyterHub (Entorno Python)
-  id: jupyterhub
-  descripcion: Cuadernos interactivos.
-  port: 8000
-  icon: bi-code-square
-  color_class: text-warning
-- nombre: Servidor Web Nginx
-  id: nginx
-  descripcion: Servidor básico html.
-  port: 80
-  icon: bi-hdd-network
-  color_class: text-success
 - id: "mongodb"
   nombre: "MongoDB"
   descripcion: "Base de datos NoSQL documental. (Usuario: root / Pass: changeme)"
