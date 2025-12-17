@@ -1,0 +1,72 @@
+{{- if has "mongodb" .Values.apps }}
+# --- 1. Secret (Credenciales) ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-secret
+  namespace: {{ .Values.nombre }}
+type: Opaque
+stringData:
+  mongo-root-username: "root"
+  mongo-root-password: "changeme"
+---
+# --- 2. Service (Headless para descubrimiento interno) ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+  namespace: {{ .Values.nombre }}
+  labels:
+    app: mongodb
+spec:
+  ports:
+    - port: 27017
+      name: mongodb
+  selector:
+    app: mongodb
+  clusterIP: None
+---
+# --- 3. StatefulSet (Base de datos) ---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: {{ .Values.nombre }}
+spec:
+  selector:
+    matchLabels:
+      app: mongodb
+  serviceName: "mongodb-service"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:6.0
+          ports:
+            - containerPort: 27017
+              name: mongodb
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: mongo-root-username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: mongo-root-password
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db
+      # ADAPTACIÓN AWS ACADEMY:
+      # Sustituimos volumeClaimTemplates por un volumen emptyDir
+      # para evitar errores de Provisioning de EBS.
+      volumes:
+        - name: mongodb-data
+          emptyDir: {}
+{{- end }}

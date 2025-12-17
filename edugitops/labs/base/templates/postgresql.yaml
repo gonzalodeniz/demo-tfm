@@ -1,0 +1,72 @@
+{{- if has "postgresql" .Values.apps }}
+# --- 1. Secret (Credenciales) ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: {{ .Values.nombre }}
+type: Opaque
+stringData:
+  # Contraseña por defecto para laboratorios
+  postgres-password: "changeme"
+---
+# --- 2. Service (Headless) ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: {{ .Values.nombre }}
+  labels:
+    app: postgres
+spec:
+  ports:
+    - port: 5432
+      name: postgres
+  selector:
+    app: postgres
+  clusterIP: None
+---
+# --- 3. StatefulSet (Motor de Base de Datos) ---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: {{ .Values.nombre }}
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: "postgres-service"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres-password
+            # (Opcional) Define un usuario/db por defecto si lo deseas
+            # - name: POSTGRES_USER
+            #   value: "alumno"
+            # - name: POSTGRES_DB
+            #   value: "lab_db"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      # ADAPTACIÓN AWS ACADEMY:
+      # Eliminamos volumeClaimTemplates para no requerir EBS.
+      # Usamos almacenamiento efímero.
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+{{- end }}

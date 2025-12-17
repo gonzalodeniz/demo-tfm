@@ -1,0 +1,69 @@
+{{- if has "mysql" .Values.apps }}
+# --- 1. Secret (Credenciales) ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+  namespace: {{ .Values.nombre }}
+type: Opaque
+stringData:
+  # En entorno real, esto debería ser más seguro.
+  mysql-root-password: "changeme"
+---
+# --- 2. Service (Headless para StatefulSet) ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  namespace: {{ .Values.nombre }}
+  labels:
+    app: mysql
+spec:
+  ports:
+    - port: 3306
+      name: mysql
+  selector:
+    app: mysql
+  clusterIP: None
+---
+# --- 3. StatefulSet (Motor de Base de Datos) ---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: {{ .Values.nombre }}
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  serviceName: "mysql-service"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          # Argumento opcional recomendado para evitar errores en arranques sin autenticación nativa nueva
+          args: ["--default-authentication-plugin=mysql_native_password"]
+          ports:
+            - containerPort: 3306
+              name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-root-password
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+      # ADAPTACIÓN AWS ACADEMY:
+      # Usamos emptyDir en lugar de volumeClaimTemplates (PVC)
+      # Los datos se perderán si el pod se reinicia.
+      volumes:
+        - name: mysql-data
+          emptyDir: {}
+{{- end }}

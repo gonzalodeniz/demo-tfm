@@ -23,3 +23,27 @@
   port: 80
   icon: bi-hdd-network
   color_class: text-success
+- id: "mongodb"
+  nombre: "MongoDB"
+  descripcion: "Base de datos NoSQL documental. (Usuario: root / Pass: changeme)"
+  port: 27017
+  icon: "bi-database"
+  color_class: "text-success"
+- id: "mysql"
+  nombre: "MySQL"
+  descripcion: "Base de datos relacional SQL clásica. (Root Pass: changeme)"
+  port: 3306
+  icon: "bi-database-fill"
+  color_class: "text-primary"
+- id: "postgresql"
+  nombre: "PostgreSQL"
+  descripcion: "Potente SGBD relacional orientado a objetos. (Pass: changeme)"
+  port: 5432
+  icon: "bi-database-gear"
+  color_class: "text-info"
+- id: "code-server"
+  nombre: "VS Code Server"
+  descripcion: "IDE de desarrollo en navegador. (Pass: password)"
+  port: 8080
+  icon: "bi-code-square"
+  color_class: "text-primary"

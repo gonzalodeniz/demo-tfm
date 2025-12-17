@@ -1,0 +1,79 @@
+{{- if has "code-server" .Values.apps }}
+# --- 1. Secret (Contraseñas) ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: code-server-secret
+  namespace: {{ .Values.nombre }}
+type: Opaque
+stringData:
+  # Contraseña para acceder a la web y para sudo
+  password: "password"
+  sudo-password: "password"
+---
+# --- 2. Service (Acceso Web) ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-server-service
+  namespace: {{ .Values.nombre }}
+  labels:
+    app: code-server
+spec:
+  selector:
+    app: code-server
+  ports:
+    - protocol: TCP
+      port: 8080      # Puerto expuesto en el servicio
+      targetPort: 8443 # Puerto interno del contenedor linuxserver/code-server
+---
+# --- 3. Deployment (IDE) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: code-server
+  namespace: {{ .Values.nombre }}
+  labels:
+    app: code-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: code-server
+  template:
+    metadata:
+      labels:
+        app: code-server
+    spec:
+      containers:
+        - name: code-server
+          image: linuxserver/code-server:latest
+          ports:
+            - containerPort: 8443
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Europe/Madrid"
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: code-server-secret
+                  key: password
+            - name: SUDO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: code-server-secret
+                  key: sudo-password
+          volumeMounts:
+            - name: workspace
+              mountPath: /config/workspace
+      # ADAPTACIÓN AWS ACADEMY:
+      # Eliminamos PersistentVolumeClaim para evitar errores de cuota/permisos EBS.
+      # Usamos emptyDir (volumen efímero).
+      volumes:
+        - name: workspace
+          emptyDir: {}
+{{- end }}
