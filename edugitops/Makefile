@@ -68,8 +68,8 @@ checkmk:
 	kubectl apply -f ./stack/checkmk.yaml
 
 app-edugitops:
-	@echo "Desplegando app-edugitops con configuración del .env..."	
-	@bash -c "set -a && source .env && set +a && envsubst '\$$GITEA_BRANCH \$$GITEA_FILE_PATH \$$GITEA_CATALOGO_PATH \$$GITEA_USER \$$GITEA_PASSWORD \$$FLASK_DEBUG' < ./stack/app-edugitops.yaml | kubectl apply -f -"
+	@echo "Desplegando app-edugitops..."
+	@bash -c "set -a && source .env && set +a && envsubst '\$$APP_IMAGE \$$GITEA_API_URL \$$GITEA_REPO_NAME \$$GITEA_BRANCH \$$GITEA_FILE_PATH \$$GITEA_CATALOGO_PATH \$$GITEA_USER \$$GITEA_PASSWORD \$$FLASK_DEBUG' < ./stack/app-edugitops.yaml | kubectl apply -f -"
 
 stack: argocd gitea checkmk app-edugitops
 	@echo "Todos los despliegues completados."

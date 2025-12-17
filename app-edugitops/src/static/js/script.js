@@ -9,7 +9,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Retorna una Promesa para poder encadenar el Push después
     function performSave(showSuccessToast = true) {
         const studentId = document.getElementById('student-id').value;
-        const studentName = document.getElementById('student-name').value;
+        
+        // CORRECCIÓN: Definimos 'nameInput' aquí para poder usarlo después
+        const nameInput = document.getElementById('student-name'); 
+        
+        // Ahora obtenemos el valor usándolo (si existe)
+        const studentName = nameInput ? nameInput.value : '';
         
         const checkedBoxes = document.querySelectorAll('.app-checkbox:checked');
         const selectedApps = Array.from(checkedBoxes).map(cb => cb.value);

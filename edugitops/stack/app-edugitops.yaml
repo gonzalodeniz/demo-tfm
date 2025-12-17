@@ -8,11 +8,10 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: app-edugitops-sa      # CAMBIO: flask-minikube-sa -> app-edugitops-sa
+  name: app-edugitops-sa
   namespace: app-edugitops
 ---
 # --- 2. Permisos (RBAC) ---
-# El ClusterRole es global, no lleva namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -28,7 +27,7 @@ metadata:
   name: service-viewer-binding
 subjects:
 - kind: ServiceAccount
-  name: app-edugitops-sa      # CAMBIO: Coincide con el nuevo nombre del SA
+  name: app-edugitops-sa
   namespace: app-edugitops
 roleRef:
   kind: ClusterRole
@@ -39,23 +38,24 @@ roleRef:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-edugitops         # CAMBIO: flask-k8s-app -> app-edugitops
+  name: app-edugitops
   namespace: app-edugitops
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: app-edugitops      # CAMBIO: flask-k8s -> app-edugitops
+      app: app-edugitops
   template:
     metadata:
       labels:
-        app: app-edugitops    # CAMBIO: flask-k8s -> app-edugitops
+        app: app-edugitops
     spec:
-      serviceAccountName: app-edugitops-sa # CAMBIO: flask-minikube-sa -> app-edugitops-sa
+      serviceAccountName: app-edugitops-sa
       containers:
-      - name: app-edugitops   # CAMBIO: flask -> app-edugitops (por coherencia)
-        image: soygonzalodeniz/app-edugitops:1.4
-        imagePullPolicy: IfNotPresent 
+      - name: app-edugitops
+        # CAMBIO: Imagen parametrizada
+        image: ${APP_IMAGE}
+        imagePullPolicy: Always # Recomendado 'Always' si usas tags mutables o 'IfNotPresent' si cambias versión
         ports:
         - containerPort: 5001
         env:
@@ -64,19 +64,21 @@ spec:
         - name: FLASK_DEBUG
           value: "${FLASK_DEBUG}"          
         
-        # Variables de Gitea (Asegúrate de que sean correctas para tu entorno)
+        # Variables de Gitea Parametrizadas
         - name: GITEA_API_URL
-          value: "http://gitea.gitea.svc.cluster.local:80/api/v1" 
+          value: "${GITEA_API_URL}" 
         - name: GITEA_REPO_OWNER
-          value: "admin"
+          value: "${GITEA_USER}"
         - name: GITEA_REPO_NAME
-          value: "demo-tfm"
+          value: "${GITEA_REPO_NAME}"
+        
+        # Resto de variables (ya estaban parametrizadas)
         - name: GITEA_FILE_PATH
           value: "${GITEA_FILE_PATH}"
         - name: GITEA_CATALOGO_PATH
           value: "${GITEA_CATALOGO_PATH}"         
         - name: GITEA_BRANCH
-          value: ${GITEA_BRANCH}
+          value: "${GITEA_BRANCH}"
         - name: GITEA_USER
           value: "${GITEA_USER}"
         - name: GITEA_PASSWORD 
@@ -91,9 +93,8 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app: app-edugitops        # CAMBIO: flask-k8s -> app-edugitops (Vital para que encuentre los pods)
+    app: app-edugitops
   ports:
     - protocol: TCP
       port: 5001      
       targetPort: 5001
-      # nodePort: 30001 # Opcional
