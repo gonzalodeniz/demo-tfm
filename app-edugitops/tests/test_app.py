@@ -11,7 +11,8 @@ from unittest.mock import patch, mock_open, MagicMock
 from flask.testing import FlaskClient
 
 # Ajustamos el path para poder importar los módulos desde el directorio padre
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(root_dir, 'src'))
 
 from app import create_app
 import data_manager 

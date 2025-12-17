@@ -356,6 +356,12 @@ def push_alumnos_to_gitea(commit_message: str = "Update alumnos.yaml from EduGit
         else:
             return False, f"Error en Push ({response_put.status_code}): {response_put.text}"
 
+    except requests.exceptions.RequestException as e:
+        # Este es el bloque que falta y que el test está esperando
+        print(f"DEBUG: Excepción Request: {e}")
+        return False, f"Error de conexión con Gitea: {str(e)}"
+
     except Exception as e:
+        # Este bloque captura cualquier otro error imprevisto
         print(f"DEBUG: Excepción General: {e}")
         return False, f"Error inesperado: {str(e)}"
