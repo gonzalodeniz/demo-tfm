@@ -53,14 +53,14 @@ spec:
       serviceAccountName: app-edugitops-sa
       containers:
       - name: app-edugitops
-        # CAMBIO: Imagen parametrizada
         image: ${APP_IMAGE}
-        imagePullPolicy: Always # Recomendado 'Always' si usas tags mutables o 'IfNotPresent' si cambias versión
+        imagePullPolicy: Always
         ports:
         - containerPort: 5001
-        env:
+        env:        
         - name: APP_VERSION
-          value: "${APP_VERSION}        
+          value: "${APP_VERSION}"
+        # -------------------------------------
         - name: FLASK_PORT
           value: "5001"
         - name: FLASK_DEBUG
@@ -94,7 +94,10 @@ spec:
         - name: CHECKMK_HOST_NAME
           value: "${CHECKMK_HOST_NAME}"
         - name: CHECKMK_URL
-          value: "${CHECKMK_URL}"
+          value: "${CHECKMK_URL}"        
+        - name: CHECKMK_HOST_IP
+          value: "${CHECKMK_HOST_IP}"
+        # ---------------------------------------
 ---
 # --- 4. Acceso de Red (Service) ---
 apiVersion: v1
