@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Borra reglas HTTPv2 en Checkmk y crea nuevas basadas en alumnos.yaml.
-Replica el comportamiento del script Bash monitoriza-laboratorios.sh.
+Ahora capaz de leer configuración de src/config.py.
 """
 
 from __future__ import annotations
@@ -12,6 +12,23 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import List, Tuple, Optional
+
+# --- BLOQUE NUEVO: Importar config.py de la carpeta hermana src ---
+try:
+    # Calculamos la ruta a 'src' basándonos en la ubicación de este script
+    script_path = Path(__file__).resolve()
+    src_path = script_path.parent.parent / "src"
+    
+    # Añadimos 'src' al path de Python para poder importar 'config'
+    if str(src_path) not in sys.path:
+        sys.path.append(str(src_path))
+    
+    import config # type: ignore
+    print("DEBUG: src/config.py importado correctamente en el script.")
+except ImportError as e:
+    config = None
+    print(f"DEBUG: No se pudo importar config.py: {e}")
+# ------------------------------------------------------------------
 
 
 def run_command(command: List[str], cwd: Path | None = None, env: Optional[dict] = None) -> None:
@@ -42,10 +59,7 @@ def load_env_file(path: Path) -> dict:
 
 
 def load_rules(alumnos_path: Path) -> List[Tuple[str, str]]:
-    """
-    Parse alumnos.yaml and produce a list of (url, service_name) tuples.
-    Mimics the inline Python logic from the original Bash script.
-    """
+    """Parse alumnos.yaml and produce a list of (url, service_name) tuples."""
     try:
         import yaml  # type: ignore
     except ImportError:
@@ -76,22 +90,10 @@ def load_rules(alumnos_path: Path) -> List[Tuple[str, str]]:
         urls = alumno.get("check-http") or []
 
         if not nombre:
-            print("Entrada sin 'nombre' detectada; se omite.", file=sys.stderr)
             continue
 
-        if len(apps) != len(urls):
-            print(
-                f"Cantidad de apps ({len(apps)}) y check-http ({len(urls)}) no coincide para {nombre}. Ajusta alumnos.yaml.",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-
         for app, url in zip(apps, urls):
-            if not url:
-                print(f"URL vacía para {nombre}/{app}; se omite.", file=sys.stderr)
-                continue
-            if not app:
-                print(f"App vacía para {nombre} (URL: {url}); se omite.", file=sys.stderr)
+            if not url or not app:
                 continue
             service = f"{nombre}-{app}"
             results.append((url, service))
@@ -100,30 +102,54 @@ def load_rules(alumnos_path: Path) -> List[Tuple[str, str]]:
 
 
 def main() -> int:
-    """Entry point replicating monitoriza-laboratorios.sh behavior."""
     parser = argparse.ArgumentParser(
         description="Borra reglas HTTPv2 y crea nuevas en Checkmk basadas en alumnos.yaml."
     )
-    parser.parse_args()  # No arguments, but kept for parity and future extensibility.
+    parser.parse_args()
 
     script_dir = Path(__file__).resolve().parent
     checkmk_dir = script_dir
-    alumnos_file = script_dir.parent / "src" / "alumnos.yaml"  
     
+    # Rutas relativas
+    alumnos_file = script_dir.parent / "src" / "alumnos.yaml"
     if not alumnos_file.exists():
-         # Intento en la raíz (compatibilidad hacia atrás o entorno raro)
          alumnos_file = script_dir.parent / "alumnos.yaml"
     
-    print(f"DEBUG: Usando fichero de alumnos en: {alumnos_file}")
-
     dotenv_path = script_dir.parent / ".env"
+    
+    # --- CONSTRUCCIÓN DE VARIABLES DE ENTORNO ---
+    # Prioridad: 1. Entorno Real (OS) > 2. Fichero .env > 3. config.py (Fallback)
+    
+    # 1. Empezamos con el entorno del sistema
     base_env = os.environ.copy()
-    base_env.update(load_env_file(dotenv_path))
-    target_host_name = (
-        base_env.get("CHECKMK_HOST_NAME")
-        or base_env.get("CHECKMK_TARGET_HOST")
-        or "minikube"
-    )
+    
+    # 2. Cargamos variables de config.py (si existe) para rellenar huecos
+    if config:
+        vars_to_sync = [
+            "CHECKMK_HOST_NAME", 
+            "CHECKMK_HOST_IP",    
+            "CHECKMK_API_USER", 
+            "CHECKMK_API_SECRET", 
+            "CHECKMK_SITE", 
+            "CHECKMK_URL"
+        ]
+        for var in vars_to_sync:
+            # Si no está en el entorno pero sí en config, la añadimos
+            if var not in base_env and hasattr(config, var):
+                val = getattr(config, var)
+                if val: # Solo si tiene valor
+                    base_env[var] = str(val)
+
+    # 3. Cargamos .env (esto sobrescribe config.py si hay colisión, lo cual es correcto)
+    file_env_vars = load_env_file(dotenv_path)
+    base_env.update(file_env_vars)
+
+    # validación final
+    target_host_name = base_env.get("CHECKMK_HOST_NAME")
+    if not target_host_name:
+        print("ERROR: Debes definir CHECKMK_HOST_NAME en el entorno, .env o config.py", file=sys.stderr)
+        return 1
+    # ---------------------------------------------
 
     print("Limpiando configuración previa en Checkmk...")
     run_command([str(checkmk_dir / "checkmk-borrar-reglas-http2.sh")], env=base_env)

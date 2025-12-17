@@ -25,3 +25,12 @@ GITEA_CATALOGO_PATH = GITEA_CATALOGO_PATH_REMOTE
 # --- CONFIGURACIÓN FLASK ---
 FLASK_PORT = int(os.getenv("FLASK_PORT", 5001))
 FLASK_DEBUG = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1", "t")
+
+# --- CONFIGURACIÓN CHECKMK ---
+# Definimos valores por defecto por si no existen en las variables de entorno
+CHECKMK_HOST_NAME = os.getenv("CHECKMK_HOST_NAME", "cluster-tfm")
+CHECKMK_HOST_IP = os.getenv("CHECKMK_HOST_IP", "127.0.0.1")
+CHECKMK_API_USER = os.getenv("CHECKMK_API_USER", "cmkadmin")
+CHECKMK_API_SECRET = os.getenv("CHECKMK_API_SECRET", "admin123") # Pon aquí tu secreto de desarrollo por defecto si quieres
+CHECKMK_SITE = os.getenv("CHECKMK_SITE", "cmk")
+CHECKMK_URL = os.getenv("CHECKMK_URL", "http://localhost:5000")
