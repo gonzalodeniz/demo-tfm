@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import os
 import base64
+import os
 import requests
+import subprocess
 import yaml
 from typing import Any, cast
 
@@ -352,6 +353,34 @@ def push_alumnos_to_gitea(commit_message: str = "Update alumnos.yaml from EduGit
 
         if response_put.status_code in [200, 201]:
             print("DEBUG: Push exitoso.")
+            
+            try:
+                # BASE_DIR es ".../src"
+                # Subimos un nivel para ir a la raíz de la app (".../app" o ".../app-edugitops")
+                app_root = os.path.dirname(BASE_DIR)
+                
+                # La ruta es siempre fija: app_root/monitoring-scripts/monitoriza-laboratorios.py
+                script_path = os.path.join(app_root, "monitoring-scripts", "monitoriza-laboratorios.py")
+                
+                print(f"DEBUG: Ejecutando script de monitorización: {script_path}")
+                
+                # Ejecutamos
+                result = subprocess.run(
+                    ["python3", script_path], 
+                    capture_output=True, 
+                    text=True,
+                    timeout=60 # Damos algo más de tiempo por si Checkmk es lento
+                )
+                
+                if result.returncode == 0:
+                    print(f"DEBUG: Script Monitorización OK:\n{result.stdout}")
+                else:
+                    print(f"ERROR: Script Monitorización falló (Code {result.returncode}):\n{result.stderr}")
+                    
+            except Exception as e:
+                print(f"ERROR EXCEPCIÓN al ejecutar script monitorización: {str(e)}")
+            # -------------------------------------------------------          
+
             return True, "Push realizado con éxito a Gitea."
         else:
             return False, f"Error en Push ({response_put.status_code}): {response_put.text}"

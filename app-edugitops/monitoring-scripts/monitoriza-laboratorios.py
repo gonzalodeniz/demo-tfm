@@ -108,7 +108,14 @@ def main() -> int:
 
     script_dir = Path(__file__).resolve().parent
     checkmk_dir = script_dir
-    alumnos_file = script_dir.parent / "alumnos.yaml"
+    alumnos_file = script_dir.parent / "src" / "alumnos.yaml"  
+    
+    if not alumnos_file.exists():
+         # Intento en la raíz (compatibilidad hacia atrás o entorno raro)
+         alumnos_file = script_dir.parent / "alumnos.yaml"
+    
+    print(f"DEBUG: Usando fichero de alumnos en: {alumnos_file}")
+
     dotenv_path = script_dir.parent / ".env"
     base_env = os.environ.copy()
     base_env.update(load_env_file(dotenv_path))

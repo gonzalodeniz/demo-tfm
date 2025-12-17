@@ -5,7 +5,7 @@ import os.path
 GITEA_API_URL = os.getenv("GITEA_API_URL", "http://localhost:3000/api/v1")
 GITEA_REPO_OWNER = os.getenv("GITEA_REPO_OWNER", "admin")
 GITEA_REPO_NAME = os.getenv("GITEA_REPO_NAME", "demo-tfm")
-GITEA_BRANCH = os.getenv("GITEA_BRANCH", "main")
+GITEA_BRANCH = os.getenv("GITEA_BRANCH", "gonzalo")
 GITEA_USER = os.getenv("GITEA_USER", "admin")
 GITEA_PASSWORD = os.getenv("GITEA_PASSWORD", "admin123")
 

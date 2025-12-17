@@ -71,8 +71,6 @@ spec:
           value: "${GITEA_USER}"
         - name: GITEA_REPO_NAME
           value: "${GITEA_REPO_NAME}"
-        
-        # Resto de variables (ya estaban parametrizadas)
         - name: GITEA_FILE_PATH
           value: "${GITEA_FILE_PATH}"
         - name: GITEA_CATALOGO_PATH
@@ -83,6 +81,18 @@ spec:
           value: "${GITEA_USER}"
         - name: GITEA_PASSWORD 
           value: "${GITEA_PASSWORD}"
+
+        # --- VARIABLES PARA CHECKMK ---
+        - name: CHECKMK_API_USER
+          value: "${CHECKMK_API_USER}"
+        - name: CHECKMK_API_SECRET
+          value: "${CHECKMK_API_SECRET}"
+        - name: CHECKMK_site
+          value: "${CHECKMK_SITE}"
+        - name: CHECKMK_HOST_NAME
+          value: "${CHECKMK_HOST_NAME}"
+        - name: CHECKMK_URL
+          value: "${CHECKMK_URL}"
 ---
 # --- 4. Acceso de Red (Service) ---
 apiVersion: v1

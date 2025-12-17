@@ -12,20 +12,20 @@ RUN apt-get update && apt-get install -y curl ca-certificates unzip && \
 
 WORKDIR /app
 
+# CORRECCIÓN: Rutas relativas simples (asumiendo build context = carpeta actual)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiamos src (donde está app.py y data_manager.py)
 COPY src/ ./src/
 
+# Copiamos los scripts de monitorización
+COPY monitoring-scripts/ ./monitoring-scripts/
+
 ENV PYTHONPATH=/app/src
-
-# Puerto por defecto (documentación)
-# Nota: EXPOSE no publica el puerto, solo informa. 
-# Si cambias la variable de entorno FLASK_PORT al correr el contenedor, 
-# deberás exponer ese puerto nuevo con -p.
-EXPOSE 5001
-
-# Definir variables de entorno por defecto (opcional, ya están en config.py)
 ENV FLASK_PORT=5001
 ENV FLASK_DEBUG=True
+
+EXPOSE 5001
 
 CMD ["python", "src/app.py"]

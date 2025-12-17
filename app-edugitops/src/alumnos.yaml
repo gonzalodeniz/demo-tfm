@@ -1,8 +1,14 @@
 - nombre: alumno-juan
-  id: "001"
-  apps: 
-    - prometheus
-    - grafana
-  check-http: 
-    - http://prometheus-service.alumno-juan.svc.cluster.local:9090
-    - http://grafana-service.alumno-juan.svc.cluster.local:3000 
+  id: '001'
+  apps:
+  - prometheus
+  - grafana
+  check-http:
+  - http://prometheus-service.alumno-juan.svc.cluster.local:9090
+  - http://grafana-service.alumno-juan.svc.cluster.local:3000
+- nombre: alumno-ana
+  id: '002'
+  apps:
+  - prometheus
+  check-http:
+  - http://prometheus-service.alumno-ana.svc.cluster.local:9090
