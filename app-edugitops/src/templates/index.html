@@ -14,6 +14,10 @@
         <div class="container-fluid px-4">
             <span class="navbar-brand fw-bold h4 mb-0">Gestor de Laboratorios Virtuales (EduGitOps)</span>
             <div class="d-flex align-items-center gap-3">
+                
+                <a href="{{ url_for('main.info_route') }}" class="btn btn-outline-info btn-sm fw-medium" title="Ver versión y variables de entorno">
+                    <i class="bi bi-info-circle-fill me-1"></i> Info
+                </a>
                 <a href="{{ url_for('main.editor') }}" class="btn btn-outline-primary btn-sm fw-medium">
                     <i class="bi bi-file-earmark-code me-1"></i> Editor YAML
                 </a>
@@ -31,7 +35,7 @@
                 <img src="https://ui-avatars.com/api/?name=Admin+User&background=0D8ABC&color=fff&rounded=true" alt="User" width="40" height="40">
             </div>
             
-            </div>
+        </div>
     </nav>
 
     <div class="container-fluid px-4">

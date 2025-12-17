@@ -6,7 +6,6 @@ from typing import Any
 import pytest
 import sys
 import os
-# CORRECCIÓN AQUÍ: Añadido MagicMock a la importación
 from unittest.mock import patch, mock_open, MagicMock
 from flask.testing import FlaskClient
 
@@ -16,6 +15,7 @@ sys.path.append(os.path.join(root_dir, 'src'))
 
 from app import create_app
 import data_manager 
+import config # Importamos config para poder mockear la versión
 
 # --- Fixture Global ---
 @pytest.fixture
@@ -55,7 +55,6 @@ def test_index_empty_state(mock_catalogo: Any, mock_alumnos: Any, client: FlaskC
     html = response.data.decode('utf-8')
 
     assert response.status_code == 200
-    # Verificamos que el span esté vacío o contenga solo espacios
     assert '<span id="header-student-name"></span>' in html or '<span id="header-student-name"> </span>' in html 
 
 @patch('data_manager.save_alumno_changes')
@@ -263,11 +262,12 @@ def test_validate_raw_yaml_bad_url(mock_catalogo: Any) -> None:
 # BLOQUE 5: Tests de Integración Git (Gitea)
 # ====================================================================
 
+@patch('subprocess.run') # IMPORTANTE: Mockeamos la ejecución del script de monitorización
 @patch('data_manager.get_raw_alumnos_yaml')
 @patch('requests.put')
 @patch('requests.get')
-def test_push_gitea_success(mock_get: Any, mock_put: Any, mock_read_file: Any) -> None:
-    """Verifica el flujo correcto de Push (GET SHA -> PUT Content)."""
+def test_push_gitea_success(mock_get: Any, mock_put: Any, mock_read_file: Any, mock_subprocess: Any) -> None:
+    """Verifica el flujo correcto de Push (GET SHA -> PUT Content -> Subprocess)."""
     
     # 1. Simular lectura de fichero local
     mock_read_file.return_value = "- nombre: test"
@@ -283,6 +283,12 @@ def test_push_gitea_success(mock_get: Any, mock_put: Any, mock_read_file: Any) -
     mock_response_put.status_code = 200
     mock_put.return_value = mock_response_put
 
+    # 4. Simular ejecución correcta del script de monitorización
+    mock_proc_result = MagicMock()
+    mock_proc_result.returncode = 0
+    mock_proc_result.stdout = "Script OK"
+    mock_subprocess.return_value = mock_proc_result
+
     # Ejecutar función
     success, msg = data_manager.push_alumnos_to_gitea()
 
@@ -292,6 +298,7 @@ def test_push_gitea_success(mock_get: Any, mock_put: Any, mock_read_file: Any) -
     # Verificar llamadas
     mock_get.assert_called_once()
     mock_put.assert_called_once()
+    mock_subprocess.assert_called_once() # Verificar que se intentó llamar al script
     
     # Verificar payload del PUT
     args, kwargs = mock_put.call_args
@@ -323,3 +330,34 @@ def test_git_push_route(mock_push: Any, client: FlaskClient) -> None:
     
     assert response.status_code == 200
     assert response.json['success'] is True
+
+# ====================================================================
+# BLOQUE 6: Tests de Información del Sistema (NUEVO)
+# ====================================================================
+
+def test_info_route_render(client: FlaskClient) -> None:
+    """La ruta /info debe cargar correctamente y mostrar la versión configurada."""
+    # Usamos patch para simular la versión definida en config.py
+    with patch('config.APP_VERSION', 'TestVersion-1.0'):
+        response = client.get('/info')
+        html = response.data.decode('utf-8')
+        
+        assert response.status_code == 200
+        assert 'Información del Sistema' in html
+        assert 'Variables de Entorno' in html
+        assert 'TestVersion-1.0' in html
+
+@patch.dict(os.environ, {'DB_PASSWORD': 'super_secret_password', 'PUBLIC_VAR': 'public_value'})
+def test_info_route_masks_secrets(client: FlaskClient) -> None:
+    """Verifica que las variables con 'PASSWORD' o 'SECRET' se ofusquen."""
+    response = client.get('/info')
+    html = response.data.decode('utf-8')
+    
+    # 1. La variable pública debe verse completa
+    assert 'public_value' in html
+    
+    # 2. La variable secreta NO debe verse en texto plano
+    assert 'super_secret_password' not in html
+    
+    # 3. Pero sí debe aparecer ofuscada (primeros 3 chars 'sup' + asteriscos)
+    assert 'sup********' in html

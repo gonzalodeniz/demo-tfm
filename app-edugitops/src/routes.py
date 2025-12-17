@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from flask import Blueprint, jsonify, render_template, request
 from flask.typing import ResponseReturnValue
 
 import data_manager
+import config
 
 main_bp = Blueprint('main', __name__)
 
@@ -15,7 +17,7 @@ def index() -> ResponseReturnValue:
     alumnos: list[dict[str, Any]] = data_manager.load_alumnos()
     servicios: list[dict[str, Any]] = data_manager.load_catalogo()
 
-    # --- NUEVO: Obtener el estado global de la sincronización con Git ---
+    # Obtener el estado global de la sincronización con Git
     git_sync_status = data_manager.GIT_SYNC_STATUS
 
     selected_id: str | None = request.args.get("id")
@@ -43,8 +45,31 @@ def index() -> ResponseReturnValue:
         servicios=servicios,
         current_student=current_student,
         assigned_apps=assigned_apps,
-        git_sync_status=git_sync_status  # <--- Pasamos el estado a la plantilla
+        git_sync_status=git_sync_status
     )
+
+@main_bp.route('/info')
+def info_route() -> ResponseReturnValue:
+    """Muestra la versión y las variables de entorno (con secretos ofuscados)."""
+    
+    # 1. Capturamos todas las variables
+    all_vars = dict(os.environ)
+    
+    # 2. Filtramos/Ofuscamos secretos por seguridad
+    safe_vars = {}
+    sensitive_keys = ['PASS', 'SECRET', 'TOKEN', 'KEY', 'PASSWORD']
+    
+    for key, value in sorted(all_vars.items()):
+        is_sensitive = any(s in key.upper() for s in sensitive_keys)
+        if is_sensitive and value:
+            # Mostramos solo los primeros 3 caracteres y ocultamos el resto
+            visible_part = value[:3] if len(value) > 3 else "*"
+            safe_vars[key] = f"{visible_part}********"
+        else:
+            safe_vars[key] = value
+
+    # Usamos la versión definida en config.py (que viene del .env)
+    return render_template('info.html', version=config.APP_VERSION, env_vars=safe_vars)
 
 @main_bp.route('/next_id', methods=['GET'])
 def next_id() -> ResponseReturnValue:

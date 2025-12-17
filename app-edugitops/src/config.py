@@ -1,6 +1,8 @@
 import os
 import os.path
 
+APP_VERSION = os.getenv("APP_VERSION", "Dev")
+
 # --- CONFIGURACIÓN GITEA ---
 GITEA_API_URL = os.getenv("GITEA_API_URL", "http://localhost:3000/api/v1")
 GITEA_REPO_OWNER = os.getenv("GITEA_REPO_OWNER", "admin")

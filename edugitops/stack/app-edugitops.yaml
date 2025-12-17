@@ -59,6 +59,8 @@ spec:
         ports:
         - containerPort: 5001
         env:
+        - name: APP_VERSION
+          value: "${APP_VERSION}        
         - name: FLASK_PORT
           value: "5001"
         - name: FLASK_DEBUG

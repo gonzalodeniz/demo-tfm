@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Info del Sistema - EduGitOps</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; padding: 20px; }
+        .table-env { font-size: 0.9em; word-break: break-all; }
+        .key-col { font-weight: bold; color: #0d6efd; width: 30%; }
+        .badge-version { font-size: 1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-info-circle-fill text-info me-2"></i>
+                Información del Sistema
+            </h1>
+            <a href="/" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-arrow-left"></i> Volver al Inicio
+            </a>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">
+                Detalles de la Aplicación
+            </div>
+            <div class="card-body">
+                <p class="mb-0"><strong>Versión Actual:</strong> <span class="badge bg-success badge-version">{{ version }}</span></p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                Variables de Entorno (Pod)
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped table-hover table-env mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">Variable (Clave)</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, value in env_vars.items() %}
+                        <tr>
+                            <td class="ps-3 key-col">{{ key }}</td>
+                            <td><code>{{ value }}</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
