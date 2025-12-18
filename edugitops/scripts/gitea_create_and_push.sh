@@ -23,14 +23,6 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 #
 # Uso:
 #   ./gitea_create_and_push.sh [RUTA_ENV] [DIRECTORIO_REPO]
-#
-# Ejemplos:
-#   ./scripts/gitea_create_and_push.sh
-#   ./scripts/gitea_create_and_push.sh .env .
-#
-# Nota de seguridad:
-#   Para evitar prompts de autenticación, el script construye temporalmente una
-#   push-url con "usuario:password@" (solo para el push) y luego la limpia.
 # -----------------------------------------------------------------------------
 
 # Carga .env (formato KEY=VALUE)
@@ -65,8 +57,27 @@ derive_urls() {
   GITEA_REPO_URL="${base}/${GITEA_USER}/${GITEA_REPO_NAME}.git"
 }
 
+# --- NUEVA FUNCIÓN: Comprobar conectividad ---
+check_connectivity() {
+  local url="${GITEA_URL%/}"
+  echo "🔍 Comprobando conectividad con Gitea ($url)..."
+  
+  # Intentamos conectar con un timeout de 3 segundos.
+  # -s: silencioso (no barra de progreso)
+  # -o /dev/null: descartar el body
+  if ! curl -s --connect-timeout 3 "$url" >/dev/null; then
+    echo "" >&2
+    echo "❌ ERROR DE CONEXIÓN: No se puede acceder a $url" >&2
+    echo "👉 CAUSA PROBABLE: El servicio de Gitea no es accesible desde aquí." >&2
+    echo "👉 SOLUCIÓN: Abre otra terminal y ejecuta el comando:" >&2
+    echo "" >&2
+    echo "    make expose" >&2
+    echo "" >&2
+    exit 1
+  fi
+}
+
 # Inserta credenciales en una URL http(s) para evitar prompts en git push
-# OJO: si tu pass tiene caracteres raros (@, :, etc.), mejor token o credential helper.
 url_with_creds() {
   local url="$1" user="$2" pass="$3"
   if [[ "$url" =~ ^(https?://)(.*)$ ]]; then
@@ -153,6 +164,9 @@ main() {
   load_env
   require_vars
   derive_urls
+  
+  # Chequeo de conexión antes de intentar nada
+  check_connectivity
 
   echo "GITEA_URL      = ${GITEA_URL%/}"
   echo "GITEA_API_URL  = $GITEA_API_URL"
