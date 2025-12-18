@@ -168,3 +168,13 @@ def git_push() -> ResponseReturnValue:
     else:
         # 502 Bad Gateway es apropiado para errores de upstream (Gitea)
         return jsonify({'success': False, 'message': msg}), 502
+
+@main_bp.route('/sync_git', methods=['POST'])
+def sync_git() -> ResponseReturnValue:
+    """Fuerza un reintento de sincronización con Gitea."""
+    success = data_manager.sync_files_from_gitea()
+    
+    if success:
+        return jsonify({'success': True, 'message': 'Sincronización con Gitea exitosa.'})
+    else:
+        return jsonify({'success': False, 'message': 'Fallo al sincronizar. Verifique que Gitea está activo.'}), 502

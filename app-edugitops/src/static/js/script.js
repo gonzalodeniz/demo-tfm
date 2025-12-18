@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnConfirmDelete = document.getElementById('btn-confirm-delete');
     const btnPush = document.getElementById('btn-git-push');
     const searchInput = document.getElementById('search-input');
+    
+    // Nuevo botón para reintentar sincronización
+    const btnRetrySync = document.getElementById('btn-retry-sync');
 
     // --- FUNCIÓN REUTILIZABLE DE GUARDADO ---
     // Retorna una Promesa para poder encadenar el Push después
@@ -206,6 +209,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     showToast('Error', data.message, false);
                 }
+            });
+        });
+    }
+
+    // --- EVENTO: REINTENTAR SINCRONIZACIÓN (NUEVO) ---
+    if (btnRetrySync) {
+        btnRetrySync.addEventListener('click', function() {
+            // UI: Mostrar estado de carga
+            const icon = document.getElementById('sync-icon');
+            const spinner = document.getElementById('sync-spinner');
+            
+            btnRetrySync.classList.add('disabled');
+            if (icon) icon.classList.add('d-none');
+            if (spinner) spinner.classList.remove('d-none');
+
+            // Llamada al backend
+            fetch('/sync_git', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Conectado', 'Sincronización con Gitea exitosa. Recargando...', true);
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('Error Conexión', data.message || 'No se pudo conectar con Gitea', false);
+                    // Restaurar botón
+                    btnRetrySync.classList.remove('disabled');
+                    if (icon) icon.classList.remove('d-none');
+                    if (spinner) spinner.classList.add('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error de Red', 'No se pudo contactar con el servidor.', false);
+                // Restaurar botón
+                btnRetrySync.classList.remove('disabled');
+                if (icon) icon.classList.remove('d-none');
+                if (spinner) spinner.classList.add('d-none');
             });
         });
     }
