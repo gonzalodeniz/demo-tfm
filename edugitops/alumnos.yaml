@@ -14,9 +14,3 @@
   check-http:
   - http://mongodb-service.alumno-pepe.svc.cluster.local:27017
   - http://mysql-service.alumno-pepe.svc.cluster.local:3306
-- nombre: alumno-ana
-  id: '003'
-  apps:
-  - code-server
-  check-http:
-  - http://code-server-service.alumno-ana.svc.cluster.local:8080
