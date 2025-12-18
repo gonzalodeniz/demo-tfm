@@ -2,7 +2,7 @@
 EKS_CONTEXT = arn:aws:eks:us-east-1:202974436470:cluster/cluster-tfm
 MINIKUBE_CONTEXT = minikube
 
-.PHONY: help use-minikube use-eks list-contexts current-context argocd gitea checkmk stack
+.PHONY: help use-minikube use-eks list-contexts current-context argocd gitea checkmk stack sincro delete passwords start-minikube expose
 
 help:
 	@echo ""
@@ -28,14 +28,13 @@ help:
 	@echo "Sincronización de laboratorios"
 	@echo "------------------------"
 	@echo "  make sincro           - Sincroniza alumnos y aplica ApplicationSet en ArgoCD"
-	@echo "  make delete           - Elimina el ApplicationSet y las reglas de monitorización"
-	@echo "  make urls             - Muestra las URLs configuradas en .env"
+	@echo "  make delete           - Elimina el ApplicationSet (borra los laboratorios)"
 	@echo "  make passwords        - Muestra contraseñas de Argo CD, Gitea y Checkmk"
 	@echo ""
-	@echo "Minikube"
+	@echo "Minikube & Utilidades"
 	@echo "------------------------"
 	@echo "  make start-minikube   - Inicia Minikube con Calico CNI"
-	@echo "  make expose   - Expone gitea, checkmk, argocd y app-edugitops vía port-forward."
+	@echo "  make expose           - Expone gitea, checkmk, argocd y app-edugitops vía port-forward."
 	@echo ""
 
 # Gestión de contextos de kubectl
@@ -79,7 +78,27 @@ sincro:
 	@echo "Sincronizando ArgoCD..."
 	@bash -c "set -a && source .env && set +a && envsubst '\$$GITEA_REPO_URL \$$GITOPS_BASE_PATH \$$GITEA_BRANCH \$$GITEA_USER \$$GITEA_PASSWORD' < labs/applicationset.yaml | kubectl apply -f - -n argocd"
 
-# Minikube
+delete:
+	@echo "🗑️  Eliminando ApplicationSet (destruyendo laboratorios)..."
+	kubectl delete -f labs/applicationset.yaml -n argocd --ignore-not-found=true
+	@echo "✅ Laboratorios eliminados de ArgoCD."
+
+passwords:
+	@echo "🔑 Credenciales del Sistema:"
+	@echo ""
+	@echo "--- ArgoCD ---"
+	@echo "User: admin"
+	@echo -n "Pass: "
+	@kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" 2>/dev/null | base64 -d || echo "No encontrado (¿ArgoCD está desplegado?)"
+	@echo ""
+	@echo ""
+	@echo "--- Gitea (desde .env) ---"
+	@bash -c "source .env && echo \"User: \$$GITEA_USER\" && echo \"Pass: \$$GITEA_PASSWORD\""
+	@echo ""
+	@echo "--- Checkmk (desde .env) ---"
+	@bash -c "source .env && echo \"User: \$$CHECKMK_API_USER\" && echo \"Pass: \$$CHECKMK_API_SECRET\""
+
+# Minikube & Tools
 
 start-minikube:
 	@echo "Iniciando Minikube con Calico CNI..."
