@@ -2,13 +2,29 @@
 EKS_CONTEXT = arn:aws:eks:us-east-1:202974436470:cluster/cluster-tfm
 MINIKUBE_CONTEXT = minikube
 
-.PHONY: help list-contexts current-context use-minikube use-eks argocd gitea gitea-init checkmk app-edugitops stack sincro delete-labs delete-stack passwords start-minikube expose
+.PHONY: help list-contexts current-context use-minikube use-eks argocd gitea gitea-init checkmk app-edugitops stack sincro delete delete-labs delete-stack passwords start-minikube expose
 
 help:
 	@echo ""
-	@echo "Opciones disponibles:"
+	@echo "============================================================"
+	@echo "                AYUDA Y MENU DE COMANDOS"
+	@echo "============================================================"
 	@echo ""
-	@echo "  make help             - Muestra esta ayuda"
+	@echo "Inicio rápido (Orden recomendado)"
+	@echo "---------------------------------"
+	@echo "  1) make start-minikube       - Inicia Minikube con Calico CNI"
+	@echo "  2) make current-context      - Muestra el contexto actual de kubectl"
+	@echo "  3) make stack                - Despliega el stack completo"
+	@echo "  4) make expose               - Expone gitea, checkmk, argocd y app-edugitops vía port-forward"
+	@echo "  5) make passwords            - Muestra contraseñas de Argo CD, Gitea y Checkmk"
+	@echo "  6) make gitea-init           - Inicializa repositorio git (⚠️ Requiere 'make expose' funcionando)"
+	@echo "  7) make sincro               - Sincroniza alumnos y aplica ApplicationSet en ArgoCD"
+	@echo ""
+	@echo "  Nota de troubleshooting:"
+	@echo "  Si app-edugitops no sincroniza con git (porque arrancó antes que Gitea):"
+	@echo "     kubectl delete deploy app-edugitops -n app-edugitops"
+	@echo "     make app-edugitops"
+	@echo "     make expose"
 	@echo ""
 	@echo "Gestión de contextos de kubectl"
 	@echo "------------------------"	
@@ -29,7 +45,7 @@ help:
 	@echo "Sincronización de laboratorios"
 	@echo "------------------------"
 	@echo "  make sincro           - Sincroniza alumnos y aplica ApplicationSet en ArgoCD"
-	@echo "  make delete-labs      - Elimina el ApplicationSet y los laboratorios"	
+	@echo "  make delete-labs      - Elimina el ApplicationSet y los laboratorios"
 	@echo "  make delete-stack     - Borra todo el stack (Apps + Laboratorios)"
 	@echo "  make passwords        - Muestra contraseñas de Argo CD, Gitea y Checkmk"
 	@echo ""
