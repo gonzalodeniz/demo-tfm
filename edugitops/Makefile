@@ -2,7 +2,7 @@
 EKS_CONTEXT = arn:aws:eks:us-east-1:202974436470:cluster/cluster-tfm
 MINIKUBE_CONTEXT = minikube
 
-.PHONY: help use-minikube use-eks list-contexts current-context argocd gitea checkmk stack sincro delete passwords start-minikube expose
+.PHONY: help use-minikube use-eks list-contexts current-context argocd gitea gitea-init checkmk stack sincro delete passwords start-minikube expose
 
 help:
 	@echo ""
@@ -21,6 +21,7 @@ help:
 	@echo "------------------------"
 	@echo "  make argocd           - Despliega ArgoCD"
 	@echo "  make gitea            - Despliega Gitea"
+	@echo "  make gitea-init       - Inicializa repositorio git (después de exponer servicios)"
 	@echo "  make checkmk          - Despliega Checkmk"
 	@echo "  make app-edugitops    - Despliega app-edugitops"
 	@echo "  make stack            - Despliega el stack completo"
@@ -61,6 +62,10 @@ argocd:
 gitea:
 	@echo "Desplegando Gitea..."
 	kubectl apply -f ./stack/gitea.yaml
+
+gitea-init:
+	@echo "Inicializando repositorio Gitea..."
+	./scripts/gitea_create_and_push.sh
 
 checkmk:
 	@echo "Desplegando Checkmk..."
