@@ -19,12 +19,12 @@ metadata:
   labels:
     app: mysql
 spec:
+  type: NodePort
   ports:
     - port: 3306
       name: mysql
   selector:
     app: mysql
-  clusterIP: None
 ---
 # --- 3. StatefulSet (Motor de Base de Datos) ---
 apiVersion: apps/v1

@@ -12,19 +12,18 @@ stringData:
 # --- 2. Service (Headless) ---
 apiVersion: v1
 kind: Service
-metadata:
-  # CORRECCIÓN: De 'postgres-service' a 'postgresql-service'
+metadata:  
   name: postgresql-service
   namespace: {{ .Values.nombre }}
   labels:
     app: postgres
 spec:
+  type: NodePort
   ports:
     - port: 5432
       name: postgres
   selector:
-    app: postgres
-  clusterIP: None
+    app: postgres  
 ---
 # --- 3. StatefulSet ---
 apiVersion: apps/v1
@@ -35,8 +34,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: postgres
-  # CORRECCIÓN: Debe coincidir con el nombre del Service de arriba
+      app: postgres  
   serviceName: "postgresql-service"
   replicas: 1
   template:

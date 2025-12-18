@@ -20,6 +20,7 @@ metadata:
   labels:
     app: code-server
 spec:
+  type: NodePort
   selector:
     app: code-server
   ports:
@@ -70,9 +71,6 @@ spec:
           volumeMounts:
             - name: workspace
               mountPath: /config/workspace
-      # ADAPTACIÓN AWS ACADEMY:
-      # Eliminamos PersistentVolumeClaim para evitar errores de cuota/permisos EBS.
-      # Usamos emptyDir (volumen efímero).
       volumes:
         - name: workspace
           emptyDir: {}

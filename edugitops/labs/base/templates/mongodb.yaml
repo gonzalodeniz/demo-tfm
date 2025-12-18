@@ -19,12 +19,12 @@ metadata:
   labels:
     app: mongodb
 spec:
+  type: NodePort
   ports:
     - port: 27017
       name: mongodb
   selector:
-    app: mongodb
-  clusterIP: None
+    app: mongodb  
 ---
 # --- 3. StatefulSet (Base de datos) ---
 apiVersion: apps/v1
