@@ -1,7 +1,21 @@
-# Variables de contexto (ajústalas según tu entorno)
-EKS_CONTEXT = arn:aws:eks:us-east-1:202974436470:cluster/cluster-tfm
-MINIKUBE_CONTEXT = minikube
+# ----------------------------------------------------------------------
+# CARGA DE VARIABLES DE ENTORNO
+# ----------------------------------------------------------------------
+# Si existe el archivo .env, lo importamos y exportamos sus variables
+# para que estén disponibles en los comandos y scripts.
+ifneq (,$(wildcard .env))
+    include .env
+    export
+endif
 
+# Valores por defecto (se usan si NO están definidos en el .env)
+# Ajusta estos valores si no usas el fichero .env
+EKS_CONTEXT ?= arn:aws:eks:us-east-1:975050074619:cluster/cluster-tfm
+MINIKUBE_CONTEXT ?= minikube
+
+# ----------------------------------------------------------------------
+# DEFINICIÓN DE OBJETIVOS (TARGETS)
+# ----------------------------------------------------------------------
 .PHONY: help list-contexts current-context use-minikube use-eks argocd gitea gitea-init checkmk app-edugitops stack sincro delete delete-labs delete-stack passwords start-minikube expose
 
 help:
