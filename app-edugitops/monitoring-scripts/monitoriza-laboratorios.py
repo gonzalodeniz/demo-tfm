@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Borra reglas HTTPv2 en Checkmk y crea nuevas basadas en alumnos.yaml.
-Ahora capaz de leer configuración de src/config.py.
+Orquestador de Monitorización para Checkmk.
+Soporta reglas HTTP y TCP basándose en catalogo-servicios.yaml.
 """
 
 from __future__ import annotations
@@ -10,182 +10,162 @@ import argparse
 import os
 import subprocess
 import sys
+import yaml # type: ignore
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Dict, Any
 
-# --- BLOQUE NUEVO: Importar config.py de la carpeta hermana src ---
+# --- Importar config.py ---
 try:
-    # Calculamos la ruta a 'src' basándonos en la ubicación de este script
     script_path = Path(__file__).resolve()
     src_path = script_path.parent.parent / "src"
-    
-    # Añadimos 'src' al path de Python para poder importar 'config'
     if str(src_path) not in sys.path:
         sys.path.append(str(src_path))
-    
     import config # type: ignore
-    print("DEBUG: src/config.py importado correctamente en el script.")
-except ImportError as e:
+except ImportError:
     config = None
-    print(f"DEBUG: No se pudo importar config.py: {e}")
-# ------------------------------------------------------------------
 
-
-def run_command(command: List[str], cwd: Path | None = None, env: Optional[dict] = None) -> None:
-    """Execute a command, exiting with the same code on failure (set -e behavior)."""
+def run_command(command: List[str], env: Dict[str, str]) -> None:
+    """Ejecuta comando bash y sale si falla."""
     try:
-        subprocess.run(
-            command,
-            check=True,
-            cwd=str(cwd) if cwd else None,
-            env=env,
-        )
+        subprocess.run(command, check=True, env=env)
     except subprocess.CalledProcessError as exc:
+        print(f"❌ Error ejecutando {command[0]}: {exc}")
         sys.exit(exc.returncode)
 
-
-def load_env_file(path: Path) -> dict:
-    """Load a simple KEY=VALUE .env file into a dict."""
-    if not path.exists():
+def load_catalog(catalog_path: Path) -> Dict[str, Dict[str, Any]]:
+    """Carga el catálogo y devuelve un mapa {app_id: {protocol, port, ...}}."""
+    if not catalog_path.exists():
+        print(f"⚠️ No se encuentra el catálogo en {catalog_path}")
         return {}
-    env_data: dict = {}
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        env_data[key.strip()] = value.strip()
-    return env_data
-
-
-def load_rules(alumnos_path: Path) -> List[Tuple[str, str]]:
-    """Parse alumnos.yaml and produce a list of (url, service_name) tuples."""
+    
     try:
-        import yaml  # type: ignore
-    except ImportError:
-        print("Se requiere el módulo PyYAML (python3 -m pip install pyyaml).", file=sys.stderr)
+        data = yaml.safe_load(catalog_path.read_text()) or []
+        catalog = {}
+        for item in data:
+            if 'id' in item:
+                catalog[item['id']] = item
+        return catalog
+    except Exception as e:
+        print(f"❌ Error leyendo catálogo: {e}")
         sys.exit(1)
 
+def load_students(alumnos_path: Path) -> List[Dict[str, Any]]:
+    """Carga lista de alumnos."""
     if not alumnos_path.exists():
-        print(f"No se encontró el fichero {alumnos_path}", file=sys.stderr)
-        sys.exit(1)
-
+        return []
     try:
-        data = yaml.safe_load(alumnos_path.read_text()) or []
-    except Exception as exc:
-        print(f"Error leyendo {alumnos_path}: {exc}", file=sys.stderr)
-        sys.exit(1)
-
-    if not isinstance(data, list):
-        print("El contenido de alumnos.yaml debe ser una lista.", file=sys.stderr)
-        sys.exit(1)
-
-    results: List[Tuple[str, str]] = []
-
-    for alumno in data:
-        if not isinstance(alumno, dict):
-            continue
-        nombre = alumno.get("nombre")
-        apps = alumno.get("apps") or []
-        urls = alumno.get("check-http") or []
-
-        if not nombre:
-            continue
-
-        for app, url in zip(apps, urls):
-            if not url or not app:
-                continue
-            service = f"{nombre}-{app}"
-            results.append((url, service))
-
-    return results
-
+        return yaml.safe_load(alumnos_path.read_text()) or []
+    except Exception:
+        return []
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Borra reglas HTTPv2 y crea nuevas en Checkmk basadas en alumnos.yaml."
-    )
+    parser = argparse.ArgumentParser(description="Configura monitorización HTTP/TCP en Checkmk.")
     parser.parse_args()
 
+    # 1. Definir rutas
     script_dir = Path(__file__).resolve().parent
-    checkmk_dir = script_dir
+    root_dir = script_dir.parent
     
-    # Rutas relativas
-    alumnos_file = script_dir.parent / "src" / "alumnos.yaml"
-    if not alumnos_file.exists():
-         alumnos_file = script_dir.parent / "alumnos.yaml"
+    # Buscamos ficheros en src/ (estructura Docker) o relativo (estructura local)
+    alumnos_file = root_dir / "src" / "alumnos.yaml"
+    if not alumnos_file.exists(): alumnos_file = root_dir / "alumnos.yaml"
     
-    dotenv_path = script_dir.parent / ".env"
-    
-    # --- CONSTRUCCIÓN DE VARIABLES DE ENTORNO ---
-    # Prioridad: 1. Entorno Real (OS) > 2. Fichero .env > 3. config.py (Fallback)
-    
-    # 1. Empezamos con el entorno del sistema
+    catalog_file = root_dir / "src" / "catalogo-servicios.yaml"
+    if not catalog_file.exists(): catalog_file = root_dir / "catalogo-servicios.yaml"
+
+    # 2. Preparar entorno
     base_env = os.environ.copy()
-    
-    # 2. Cargamos variables de config.py (si existe) para rellenar huecos
     if config:
-        vars_to_sync = [
-            "CHECKMK_HOST_NAME", 
-            "CHECKMK_HOST_IP",    
-            "CHECKMK_API_USER", 
-            "CHECKMK_API_SECRET", 
-            "CHECKMK_SITE", 
-            "CHECKMK_URL"
-        ]
+        vars_to_sync = ["CHECKMK_HOST_NAME", "CHECKMK_HOST_IP", "CHECKMK_API_USER", 
+                        "CHECKMK_API_SECRET", "CHECKMK_SITE", "CHECKMK_URL"]
         for var in vars_to_sync:
-            # Si no está en el entorno pero sí en config, la añadimos
             if var not in base_env and hasattr(config, var):
                 val = getattr(config, var)
-                if val: # Solo si tiene valor
-                    base_env[var] = str(val)
+                if val: base_env[var] = str(val)
 
-    # 3. Cargamos .env (esto sobrescribe config.py si hay colisión, lo cual es correcto)
-    file_env_vars = load_env_file(dotenv_path)
-    base_env.update(file_env_vars)
-
-    # validación final
+    # Validar Hostname
     target_host_name = base_env.get("CHECKMK_HOST_NAME")
     if not target_host_name:
-        print("ERROR: Debes definir CHECKMK_HOST_NAME en el entorno, .env o config.py", file=sys.stderr)
+        print("❌ ERROR: CHECKMK_HOST_NAME no definido.")
         return 1
-    # ---------------------------------------------
 
-    print("Limpiando configuración previa en Checkmk...")
-    run_command([str(checkmk_dir / "checkmk-borrar-reglas-http2.sh")], env=base_env)
+    # 3. Limpieza Inicial
+    print("🧹 [1/4] Limpiando reglas antiguas (HTTP y TCP)...")
+    run_command([str(script_dir / "checkmk-borrar-reglas-http2.sh")], env=base_env)
+    run_command([str(script_dir / "checkmk-borrar-reglas-tcp.sh")], env=base_env)
+    
+    # Reiniciar host (opcional, para asegurar limpieza)
+    run_command([str(script_dir / "checkmk-borrar-host.sh")], env=base_env)
+    run_command([str(script_dir / "checkmk-crear-host.sh")], env=base_env)
 
-    run_command([str(checkmk_dir / "checkmk-borrar-host.sh")], env=base_env)
+    # 4. Cargar Datos
+    catalog = load_catalog(catalog_file)
+    students = load_students(alumnos_file)
 
-    run_command([str(checkmk_dir / "checkmk-crear-host.sh")], env=base_env)
-
-    rules = load_rules(alumnos_file)
-    total_rules = len(rules)
-
-    if total_rules == 0:
-        print("Sin reglas nuevas en alumnos.yaml. Finalizado.")
+    if not students:
+        print("ℹ️ No hay alumnos. Finalizando.")
         return 0
 
-    print(f"Creando {total_rules} reglas HTTPv2...")
-    env_skip_activate = base_env.copy()
-    env_skip_activate["SKIP_ACTIVATE"] = "1"
+    print(f"⚙️ [2/4] Procesando {len(students)} alumnos...")
+    
+    # Entorno para creación masiva (sin activar cambios cada vez)
+    env_batch = base_env.copy()
+    env_batch["SKIP_ACTIVATE"] = "1"
 
-    for url, service_name in rules:
-        run_command(
-            [
-                str(checkmk_dir / "checkmk-crear-regla-http2.sh"),
-                target_host_name,
-                url,
-                service_name,
-            ],
-            env=env_skip_activate,
-        )
+    count_http = 0
+    count_tcp = 0
 
-    print("Activando cambios pendientes...")
-    run_command([str(checkmk_dir / "checkmk-activar-cambios.sh")], env=base_env)
+    for alumno in students:
+        nombre = alumno.get("nombre", "").strip()
+        apps = alumno.get("apps", [])
+        
+        if not nombre: continue
 
-    print("Checkmk actualizado.")
+        for app_id in apps:
+            if app_id not in catalog:
+                print(f"⚠️ App desconocida '{app_id}' para {nombre}. Saltando.")
+                continue
+            
+            app_info = catalog[app_id]
+            protocol = app_info.get("protocol", "http").lower()
+            port = app_info.get("port")
+            
+            # Construir nombre de servicio K8s: <app>-service.<alumno>.svc.cluster.local
+            # Nota: Esto asume tu convención de nombres estándar
+            k8s_dns = f"{app_id}-service.{nombre}.svc.cluster.local"
+            service_label = f"{nombre}-{app_id}"
+
+            if protocol == "http":
+                # Construir URL completa
+                target_url = f"http://{k8s_dns}:{port}"
+                print(f"   Creating HTTP: {service_label} -> {target_url}")
+                run_command([
+                    str(script_dir / "checkmk-crear-regla-http2.sh"),
+                    target_host_name,
+                    target_url,
+                    service_label
+                ], env=env_batch)
+                count_http += 1
+                
+            elif protocol == "tcp":
+                print(f"   Creating TCP: {service_label} -> {k8s_dns}:{port}")
+                run_command([
+                    str(script_dir / "checkmk-crear-regla-tcp.sh"),
+                    target_host_name,
+                    k8s_dns,
+                    str(port),
+                    service_label
+                ], env=env_batch)
+                count_tcp += 1
+
+    print(f"📊 Resumen: {count_http} reglas HTTP, {count_tcp} reglas TCP creadas.")
+
+    # 5. Activar Cambios
+    print("🚀 [3/4] Activando cambios en Checkmk...")
+    run_command([str(script_dir / "checkmk-activar-cambios.sh")], env=base_env)
+
+    print("✅ [4/4] Proceso completado con éxito.")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())
