@@ -7,11 +7,10 @@ NAMESPACE="argocd"
 URL_MANIFEST="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
 
 echo "=================================================="
-echo "🚀 Iniciando instalación de ArgoCD (Modo Híbrido)"
+echo "🚀 Iniciando instalación de ArgoCD (Con Parches Anti-Reinicios)"
 echo "=================================================="
 
 # --- 1. DETECCIÓN DE ENTORNO ---
-# Comprobamos si el contexto actual o los nodos indican que es Minikube
 if kubectl get node minikube &> /dev/null; then
     ENV_TYPE="MINIKUBE"
     echo "📍 Entorno detectado: MINIKUBE (Local)"
@@ -21,36 +20,44 @@ else
 fi
 
 # --- 2. INSTALACIÓN ---
-echo "[1/4] Creando namespace '$NAMESPACE'..."
+echo "[1/5] Creando namespace '$NAMESPACE'..."
 kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
-echo "[2/4] Aplicando manifiestos oficiales..."
+echo "[2/5] Aplicando manifiestos oficiales..."
 kubectl apply -n $NAMESPACE -f $URL_MANIFEST
 
-# --- 3. CONFIGURACIÓN DEL SERVICIO ---
-if [ "$ENV_TYPE" = "EKS" ]; then
-    echo "[3/4] [EKS] Configurando Service como LoadBalancer..."
-    kubectl patch svc argocd-server -n $NAMESPACE -p '{"spec": {"type": "LoadBalancer"}}'
-    
-    echo "      Esperando a que AWS asigne el Hostname del LoadBalancer (puede tardar)..."
-    until kubectl get svc argocd-server -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' &> /dev/null
-    do
-        printf "."
-        sleep 5
-    done
-    echo ""
-    LB_HOST=$(kubectl get svc argocd-server -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-    UI_URL="https://$LB_HOST"
-else
-    echo "[3/4] [MINIKUBE] Configurando Service como NodePort..."
-    # Usamos NodePort para facilitar acceso si falla el port-forward, aunque el Makefile usa port-forward.
-    kubectl patch svc argocd-server -n $NAMESPACE -p '{"spec": {"type": "NodePort"}}'
-    UI_URL="https://localhost:8080 (Requiere 'make expose' o port-forward)"
-fi
+# --- 3. PARCHEO DE PROBES (SOLUCIÓN A LOS REINICIOS) ---
+echo "[3/5] Aplicando parches de estabilidad (Timeout y Liveness)..."
 
-# --- 4. CREDENCIALES ---
-echo "[4/4] Esperando a que el secret de admin esté disponible..."
-# Esperamos un poco a que el secret se genere tras el despliegue
+# Parche 1: ArgoCD SERVER (La interfaz web)
+# Aumentamos el timeout y el delay inicial para evitar que se reinicie al arrancar
+kubectl -n $NAMESPACE patch deploy argocd-server --type='json' -p='[
+  {"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/initialDelaySeconds", "value": 180},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/timeoutSeconds", "value": 15},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/failureThreshold", "value": 10},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/readinessProbe/initialDelaySeconds", "value": 60},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/readinessProbe/timeoutSeconds", "value": 15}
+]' || echo "⚠️ Advertencia: No se pudo parchear argocd-server"
+
+# Parche 2: ArgoCD REPO SERVER (El backend que clona git)
+# Este es el que te estaba fallando con "Error 143/137"
+kubectl -n $NAMESPACE patch deploy argocd-repo-server --type='json' -p='[
+  {"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/initialDelaySeconds", "value": 180},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/timeoutSeconds", "value": 15},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/failureThreshold", "value": 10},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/readinessProbe/initialDelaySeconds", "value": 60},
+  {"op": "replace", "path": "/spec/template/spec/containers/0/readinessProbe/timeoutSeconds", "value": 15}
+]' || echo "⚠️ Advertencia: No se pudo parchear argocd-repo-server"
+
+# --- 4. CONFIGURACIÓN DEL SERVICIO ---
+echo "[4/5] Configurando Service como NodePort..."
+# Usamos NodePort siempre. Es más seguro en AWS Academy para evitar problemas de cuota de ELB
+# y funciona igual en Minikube con port-forward.
+kubectl patch svc argocd-server -n $NAMESPACE -p '{"spec": {"type": "NodePort"}}'
+UI_URL="https://localhost:8080 (Requiere 'make expose')"
+
+# --- 5. CREDENCIALES ---
+echo "[5/5] Esperando a que el secret de admin esté disponible..."
 sleep 5
 until kubectl -n $NAMESPACE get secret argocd-initial-admin-secret &> /dev/null; do
     echo "      Esperando creación de secretos..."
@@ -61,7 +68,7 @@ ADMIN_PASSWORD=$(kubectl -n $NAMESPACE get secret argocd-initial-admin-secret -o
 
 echo ""
 echo "=================================================="
-echo "✅ Instalación completada"
+echo "✅ Instalación completada y parcheada"
 echo "=================================================="
 echo "🌍 Entorno: $ENV_TYPE"
 echo "📂 UI ArgoCD: $UI_URL"

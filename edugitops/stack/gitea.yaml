@@ -177,18 +177,18 @@ spec:
             httpGet:
               path: /api/healthz  
               port: http
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
             periodSeconds: 10
-            timeoutSeconds: 5     
-            failureThreshold: 6
+            timeoutSeconds: 15     
+            failureThreshold: 10
           livenessProbe:
             httpGet:
               path: /api/healthz  
               port: http
-            initialDelaySeconds: 120 
-            periodSeconds: 15     # <--- Comprueba cada 15s en vez de 10s
-            timeoutSeconds: 5     # <--- Importante: Si tarda 2s, no lo mates
-            failureThreshold: 10  # <--- Aguanta 10 fallos antes de reiniciar
+            initialDelaySeconds: 180 
+            periodSeconds: 20 
+            timeoutSeconds: 15
+            failureThreshold: 10
 
       volumes:
         - name: data
