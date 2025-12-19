@@ -16,6 +16,10 @@
             <span class="navbar-brand fw-bold h4 mb-0">Gestor de Laboratorios Virtuales (EduGitOps)</span>
             <div class="d-flex align-items-center gap-3">
                 
+                <a href="{{ url_for('main.deployments_view') }}" class="btn btn-outline-success btn-sm fw-medium" title="Ver estado de los despliegues y URLs">
+                    <i class="bi bi-broadcast me-1"></i> Ver Despliegues
+                </a>
+                
                 <a href="{{ url_for('main.info_route') }}" class="btn btn-outline-info btn-sm fw-medium" title="Ver versión y variables de entorno">
                     <i class="bi bi-info-circle-fill me-1"></i> Info
                 </a>

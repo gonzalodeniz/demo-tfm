@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Despliegues Activos - EduGitOps</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-0"><i class="bi bi-rocket-takeoff-fill text-primary me-2"></i>Despliegues Activos</h2>
+                <p class="text-muted">Estado actual de los laboratorios (NodePort)</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-house-door-fill me-2"></i>Volver al Inicio
+                </a>
+                <a href="{{ url_for('main.deployments_view') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Recargar Datos
+                </a>
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-danger d-flex align-items-center shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+            <div>
+                <strong>Error:</strong> {{ error }}
+                <br><small>Verifica que <code>kubectl</code> está instalado y tiene permisos en el Pod.</small>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="py-3 ps-4">Namespace (Alumno)</th>
+                                <th class="py-3">Servicio (App)</th>
+                                <th class="py-3">IP Nodo</th>
+                                <th class="py-3">Puerto (NodePort)</th>
+                                <th class="py-3 text-end pe-4">Acceso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if deployments %}
+                                {% for deploy in deployments %}
+                                <tr>
+                                    <td class="ps-4 fw-medium text-primary">{{ deploy.namespace }}</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            {{ deploy.app_name }}
+                                        </span>
+                                    </td>
+                                    <td class="font-monospace text-muted">{{ deploy.node_ip }}</td>
+                                    <td class="font-monospace fw-bold text-success">{{ deploy.port }}</td>
+                                    <td class="text-end pe-4">
+                                        <a href="{{ deploy.url }}" target="_blank" class="btn btn-sm btn-success px-3">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Abrir App
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <i class="bi bi-inbox fs-1 mb-3 opacity-50"></i>
+                                            <h5>No se encontraron despliegues activos</h5>
+                                            <p class="small mb-0">Asegúrate de que los alumnos tienen servicios tipo 'NodePort' desplegados.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-3 text-end text-muted small">
+            <i class="bi bi-terminal me-1"></i> Datos obtenidos mediante <code>kubectl get svc</code>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

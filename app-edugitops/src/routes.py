@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import os
+import subprocess
+import re
 from typing import Any
 
 from flask import Blueprint, jsonify, render_template, request
@@ -178,3 +180,95 @@ def sync_git() -> ResponseReturnValue:
         return jsonify({'success': True, 'message': 'Sincronización con Gitea exitosa.'})
     else:
         return jsonify({'success': False, 'message': 'Fallo al sincronizar. Verifique que Gitea está activo.'}), 502
+
+def run_kubectl_command(command_list):
+    """Ejecuta un comando kubectl y devuelve la salida como texto."""
+    try:
+        # Añadimos --kubeconfig si fuera necesario, pero asumimos que el entorno tiene acceso
+        result = subprocess.check_output(command_list, text=True, stderr=subprocess.STDOUT)
+        return result.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"Error ejecutando kubectl: {e.output}")
+        return None
+    except FileNotFoundError:
+        return None
+
+def get_node_external_ip():
+    """Obtiene la IP Externa (o Interna) del primer nodo usando kubectl."""
+    # Comando equivalente a: kubectl get nodes -o wide --no-headers
+    output = run_kubectl_command(['kubectl', 'get', 'nodes', '-o', 'wide', '--no-headers'])
+    
+    if not output:
+        return "127.0.0.1"
+
+    # Procesamos línea por línea (normalmente solo hay un nodo o varios)
+    for line in output.split('\n'):
+        parts = line.split()
+        if len(parts) >= 7:
+            # En 'get nodes -o wide', las columnas suelen ser:
+            # NAME STATUS ROLES AGE VERSION INTERNAL-IP EXTERNAL-IP
+            # Index 5 es Internal, Index 6 es External (normalmente)
+            external_ip = parts[6] if len(parts) > 6 else "<none>"
+            internal_ip = parts[5]
+            
+            # Si tiene IP externa real (no <none>), la usamos. Si no, la interna.
+            if external_ip != "<none>":
+                return external_ip
+            return internal_ip
+            
+    return "127.0.0.1"
+
+@main_bp.route('/deployments')
+def deployments_view() -> ResponseReturnValue:
+    """Vista para listar servicios NodePort de alumnos parseando kubectl."""
+    
+    deployments_list = []
+    error_msg = None
+    node_ip = "127.0.0.1"
+
+    try:
+        # 1. Obtener IP del Nodo
+        node_ip = get_node_external_ip()
+
+        # 2. Obtener Servicios
+        # kubectl get svc --all-namespaces --no-headers
+        svc_output = run_kubectl_command(['kubectl', 'get', 'svc', '-A', '--no-headers'])
+
+        if svc_output:
+            for line in svc_output.split('\n'):
+                # Ejemplo de línea: 
+                # alumno-pepe  app-lablight-service  NodePort  10.100.x.x  <none>  80:30301/TCP  2m
+                parts = line.split()
+                
+                # Necesitamos al menos namespace, nombre, tipo y puertos
+                if len(parts) >= 5:
+                    namespace = parts[0]
+                    name = parts[1]
+                    svc_type = parts[2]
+                    ports_str = parts[4] if len(parts) == 5 else parts[5] # A veces ClusterIP es <none> o IP
+
+                    # Filtramos: Solo alumnos y solo NodePort
+                    if namespace.startswith('alumno-') and svc_type == 'NodePort':
+                        
+                        # Extraer el puerto expuesto (el segundo número en 80:30301/TCP)
+                        # Usamos Regex para buscar patrón: :(\d+)
+                        match = re.search(r':(\d+)', ports_str)
+                        node_port = match.group(1) if match else "???"
+
+                        deployments_list.append({
+                            'namespace': namespace,
+                            'app_name': name,
+                            'node_ip': node_ip,
+                            'port': node_port,
+                            'url': f"http://{node_ip}:{node_port}"
+                        })
+            
+            # Ordenar alfabéticamente por namespace
+            deployments_list.sort(key=lambda x: x['namespace'])
+        else:
+            error_msg = "No se pudo obtener la lista de servicios (kubectl devolvió vacío o falló)."
+
+    except Exception as e:
+        error_msg = f"Error inesperado: {str(e)}"
+
+    return render_template('deployments.html', deployments=deployments_list, error=error_msg)
