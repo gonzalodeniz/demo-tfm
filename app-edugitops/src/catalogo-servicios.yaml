@@ -41,3 +41,17 @@
   protocol: http
   icon: "bi-code-square"
   color_class: "text-primary"
+- id: "app-lablight"
+  nombre: "Web Ligera A"
+  descripcion: "Página estática TFM (BusyBox). Consumo mínimo."
+  port: 80
+  protocol: http
+  icon: "bi-globe"
+  color_class: "text-success"
+- id: "app-lablight-2"
+  nombre: "Web Ligera B"
+  descripcion: "Segunda instancia ligera para pruebas de carga visuales."
+  port: 80
+  protocol: http
+  icon: "bi-globe2"
+  color_class: "text-success"  

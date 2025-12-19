@@ -1,8 +1,7 @@
 - nombre: alumno-juan
   id: '001'
   apps:
-  - prometheus
-  - grafana
+  - app-lablight
   check-http:
-  - http://prometheus-service.alumno-juan.svc.cluster.local:9090
-  - http://grafana-service.alumno-juan.svc.cluster.local:3000
+  - http://app-lablight-service.alumno-juan.svc.cluster.local:80
+  
