@@ -51,7 +51,7 @@ spec:
           # --- MEJORA: Probes más pacientes ---
           readinessProbe:
             httpGet:
-              path: /cmk/check_mk/login.py # Ruta explícita mejor que raíz
+              path: /
               port: 5000
             initialDelaySeconds: 60
             periodSeconds: 15
@@ -59,7 +59,7 @@ spec:
             failureThreshold: 5
           livenessProbe:
             httpGet:
-              path: /cmk/check_mk/login.py
+              path: /
               port: 5000
             initialDelaySeconds: 180 # Checkmk tarda en crear el 'site'
             periodSeconds: 20

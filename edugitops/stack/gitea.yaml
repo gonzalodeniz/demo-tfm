@@ -175,7 +175,7 @@ spec:
               mountPath: /data
           readinessProbe:
             httpGet:
-              path: /api/healthz  
+              path: / 
               port: http
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -183,7 +183,7 @@ spec:
             failureThreshold: 10
           livenessProbe:
             httpGet:
-              path: /api/healthz  
+              path: / 
               port: http
             initialDelaySeconds: 180 
             periodSeconds: 20 
