@@ -34,21 +34,37 @@ spec:
               name: http
             - containerPort: 6557
               name: livestatus
+          
+          # --- MEJORA: Definición de recursos ---
+          resources:
+            requests:
+              memory: "512Mi" # Garantiza RAM mínima
+              cpu: "300m"     # Garantiza ciclo de CPU para arrancar
+            limits:
+              memory: "2Gi"   # Evita que colapse el nodo
+              cpu: "1000m"
+
           volumeMounts:
             - name: data
               mountPath: /omd/sites
+          
+          # --- MEJORA: Probes más pacientes ---
           readinessProbe:
             httpGet:
-              path: /
+              path: /cmk/check_mk/login.py # Ruta explícita mejor que raíz
               port: 5000
-            initialDelaySeconds: 90
+            initialDelaySeconds: 60
             periodSeconds: 15
+            timeoutSeconds: 5      # IMPORTANTE: espera 5s respuesta
+            failureThreshold: 5
           livenessProbe:
             httpGet:
-              path: /
+              path: /cmk/check_mk/login.py
               port: 5000
-            initialDelaySeconds: 120
-            periodSeconds: 30
+            initialDelaySeconds: 180 # Checkmk tarda en crear el 'site'
+            periodSeconds: 20
+            timeoutSeconds: 5      # IMPORTANTE
+            failureThreshold: 10   # Aguanta 10 fallos antes de matar
       volumes:
         - name: data
           emptyDir: {}
@@ -59,7 +75,8 @@ metadata:
   name: checkmk
   namespace: checkmk
 spec:
-  type: LoadBalancer
+  # CAMBIO: NodePort para compatibilidad AWS Academy/Minikube
+  type: NodePort
   selector:
     app: checkmk
   ports:

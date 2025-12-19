@@ -102,6 +102,13 @@ spec:
         - name: init-gitea-admin
           image: docker.gitea.com/gitea:1.25.2
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"    # Garantiza 1/4 de núcleo para arrancar
+            limits:
+              memory: "1Gi"  # Evita que se coma toda la RAM si hay fuga
+              cpu: "1000m"
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -168,13 +175,20 @@ spec:
               mountPath: /data
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/healthz  
               port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5     
+            failureThreshold: 6
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/healthz  
               port: http
-            initialDelaySeconds: 30
+            initialDelaySeconds: 120 
+            periodSeconds: 15     # <--- Comprueba cada 15s en vez de 10s
+            timeoutSeconds: 5     # <--- Importante: Si tarda 2s, no lo mates
+            failureThreshold: 10  # <--- Aguanta 10 fallos antes de reiniciar
 
       volumes:
         - name: data
