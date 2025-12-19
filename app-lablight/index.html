@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio Virtual - TFM EduGitOps</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+            text-align: center;
+            border-top: 5px solid #007bff;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #007bff;
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            font-weight: normal;
+        }
+        .description {
+            text-align: left;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="badge">Estado: OPERATIVO</span>
+        <h1>Plataforma EduGitOps</h1>
+        <h2>Trabajo Fin de Máster (TFM) - UNIR</h2>
+
+        <div class="description">
+            <p><strong>Descripción del Proyecto:</strong></p>
+            <p>Este entorno es parte de una prueba de concepto para la implementación de una arquitectura <strong>GitOps</strong> destinada al despliegue automatizado de laboratorios virtuales educativos sobre <strong>Kubernetes (EKS)</strong>.</p>
+            
+            <p><strong>Pruebas en curso:</strong></p>
+            <ul>
+                <li>Validación del ciclo de vida de aplicaciones con <strong>ArgoCD</strong>.</li>
+                <li>Análisis de resiliencia y auto-escalado de Pods.</li>
+                <li>Monitorización de infraestructura con <strong>Checkmk</strong>.</li>
+                <li>Gestión eficiente de recursos en entornos multi-tenant (Alumnos).</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            &copy; 2025 Gonzalo Déniz - Máster en DevOps y Cloud Computing
+        </div>
+    </div>
+</body>
+</html>
