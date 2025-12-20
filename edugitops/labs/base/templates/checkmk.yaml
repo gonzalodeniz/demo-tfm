@@ -5,7 +5,6 @@ kind: Namespace
 metadata:
   name: checkmk
   labels:
-    # Etiqueta opcional para que ArgoCD sepa que es parte de la gestión
     argocd.argoproj.io/instance: checkmk
 ---
 # --- 2. Deployment ---
@@ -43,23 +42,23 @@ spec:
             - containerPort: 6557
               name: livestatus
           
-          # Recursos ajustados para estabilidad
           resources:
             requests:
               memory: "512Mi"
               cpu: "300m"
             limits:
-              memory: "1.5Gi"
+              # IGUALADO AL QUE FUNCIONA (stack_checkmk.yaml)
+              memory: "2Gi"   
               cpu: "1000m"
 
           volumeMounts:
             - name: data
               mountPath: /omd/sites
           
-          # Probes pacientes para evitar reinicios
+          # IGUALADO AL QUE FUNCIONA: Usamos path "/" en lugar del script python
           readinessProbe:
             httpGet:
-              path: /cmk/check_mk/login.py
+              path: /
               port: 5000
             initialDelaySeconds: 60
             periodSeconds: 15
@@ -67,7 +66,7 @@ spec:
             failureThreshold: 5
           livenessProbe:
             httpGet:
-              path: /cmk/check_mk/login.py
+              path: /
               port: 5000
             initialDelaySeconds: 180
             periodSeconds: 20
