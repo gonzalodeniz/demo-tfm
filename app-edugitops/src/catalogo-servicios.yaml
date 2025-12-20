@@ -48,10 +48,11 @@
   protocol: http
   icon: "bi-globe"
   color_class: "text-success"
-- id: "checkmk"
-  nombre: "Checkmk"
-  descripcion: "Herramienta de monitorización."
+- id: "app-lablight-2"
+  nombre: "Web Ligera B"
+  descripcion: "Segunda instancia ligera para pruebas de carga visuales."
   port: 80
   protocol: http
-  icon: "bi-activity"
-  color_class: "text-danger"  
+  icon: "bi-globe2"
+  color_class: "text-success"  
+

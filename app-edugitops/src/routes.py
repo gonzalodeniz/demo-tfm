@@ -220,7 +220,7 @@ def get_node_external_ip():
 
 @main_bp.route('/deployments')
 def deployments_view() -> ResponseReturnValue:
-    """Vista para listar servicios NodePort de alumnos y Checkmk."""
+    """Vista para listar servicios NodePort de alumnos parseando kubectl."""
     
     deployments_list = []
     error_msg = None
@@ -231,54 +231,44 @@ def deployments_view() -> ResponseReturnValue:
         node_ip = get_node_external_ip()
 
         # 2. Obtener Servicios
+        # kubectl get svc --all-namespaces --no-headers
         svc_output = run_kubectl_command(['kubectl', 'get', 'svc', '-A', '--no-headers'])
 
         if svc_output:
             for line in svc_output.split('\n'):
                 # Ejemplo de línea: 
-                # checkmk      checkmk               NodePort    10.100.x.x  <none>  80:30000/TCP  5m
+                # alumno-pepe  app-lablight-service  NodePort  10.100.x.x  <none>  80:30301/TCP  2m
                 parts = line.split()
                 
+                # Necesitamos al menos namespace, nombre, tipo y puertos
                 if len(parts) >= 5:
                     namespace = parts[0]
                     name = parts[1]
                     svc_type = parts[2]
-                    ports_str = parts[4] if len(parts) == 5 else parts[5]
+                    ports_str = parts[4] if len(parts) == 5 else parts[5] # A veces ClusterIP es <none> o IP
 
-                    # --- CAMBIO AQUÍ ---
-                    # Aceptamos si es alumno O si es checkmk, Y además es NodePort
-                    es_alumno = namespace.startswith('alumno-')
-                    es_checkmk = (namespace == 'checkmk')
-
-                    if (es_alumno or es_checkmk) and svc_type == 'NodePort':
+                    # Filtramos: Solo alumnos y solo NodePort
+                    if namespace.startswith('alumno-') and svc_type == 'NodePort':
                         
-                        # Extraer el puerto externo (NodePort)
+                        # Extraer el puerto expuesto (el segundo número en 80:30301/TCP)
+                        # Usamos Regex para buscar patrón: :(\d+)
                         match = re.search(r':(\d+)', ports_str)
                         node_port = match.group(1) if match else "???"
-                        
-                        # Extraer el puerto interno (el que está antes de los :)
-                        # Esto es importante porque Checkmk suele usar el 80 internamente pero expone otro
-                        internal_port = ports_str.split(':')[0] if ':' in ports_str else "80"
-
-                        # Comando para copiar
-                        cmd = f"kubectl port-forward -n {namespace} svc/{name} {node_port}:{internal_port}"
 
                         deployments_list.append({
                             'namespace': namespace,
                             'app_name': name,
                             'node_ip': node_ip,
                             'port': node_port,
-                            'url': f"http://{node_ip}:{node_port}",
-                            'pf_cmd': cmd
+                            'url': f"http://{node_ip}:{node_port}"
                         })
             
-            # Ordenar: primero checkmk para que salga arriba, luego los alumnos
-            deployments_list.sort(key=lambda x: (0 if x['namespace'] == 'checkmk' else 1, x['namespace']))
+            # Ordenar alfabéticamente por namespace
+            deployments_list.sort(key=lambda x: x['namespace'])
         else:
-            error_msg = "No se pudo obtener la lista de servicios."
+            error_msg = "No se pudo obtener la lista de servicios (kubectl devolvió vacío o falló)."
 
     except Exception as e:
         error_msg = f"Error inesperado: {str(e)}"
 
     return render_template('deployments.html', deployments=deployments_list, error=error_msg)
-    
