@@ -220,7 +220,7 @@ def get_node_external_ip():
 
 @main_bp.route('/deployments')
 def deployments_view() -> ResponseReturnValue:
-    """Vista para listar servicios NodePort de alumnos parseando kubectl."""
+    """Vista para listar servicios NodePort de alumnos."""
     
     deployments_list = []
     error_msg = None
@@ -231,7 +231,6 @@ def deployments_view() -> ResponseReturnValue:
         node_ip = get_node_external_ip()
 
         # 2. Obtener Servicios
-        # kubectl get svc --all-namespaces --no-headers
         svc_output = run_kubectl_command(['kubectl', 'get', 'svc', '-A', '--no-headers'])
 
         if svc_output:
@@ -240,30 +239,36 @@ def deployments_view() -> ResponseReturnValue:
                 # alumno-pepe  app-lablight-service  NodePort  10.100.x.x  <none>  80:30301/TCP  2m
                 parts = line.split()
                 
-                # Necesitamos al menos namespace, nombre, tipo y puertos
                 if len(parts) >= 5:
                     namespace = parts[0]
                     name = parts[1]
                     svc_type = parts[2]
-                    ports_str = parts[4] if len(parts) == 5 else parts[5] # A veces ClusterIP es <none> o IP
+                    ports_str = parts[4] if len(parts) == 5 else parts[5] 
 
-                    # Filtramos: Solo alumnos y solo NodePort
+                    # FILTRO SIMPLIFICADO: Solo namespaces de alumnos y tipo NodePort
                     if namespace.startswith('alumno-') and svc_type == 'NodePort':
                         
-                        # Extraer el puerto expuesto (el segundo número en 80:30301/TCP)
-                        # Usamos Regex para buscar patrón: :(\d+)
+                        # Extraer el puerto externo (NodePort)
                         match = re.search(r':(\d+)', ports_str)
                         node_port = match.group(1) if match else "???"
+                        
+                        # Extraer el puerto interno (el que está antes de los :)
+                        # Fundamental para que funcione el comando port-forward
+                        internal_port = ports_str.split(':')[0] if ':' in ports_str else "80"
+
+                        # Generar el comando exacto con los puertos correctos
+                        cmd = f"kubectl port-forward -n {namespace} svc/{name} {node_port}:{internal_port}"
 
                         deployments_list.append({
                             'namespace': namespace,
                             'app_name': name,
                             'node_ip': node_ip,
                             'port': node_port,
-                            'url': f"http://{node_ip}:{node_port}"
+                            'url': f"http://{node_ip}:{node_port}",
+                            'pf_cmd': cmd  # Comando generado correctamente
                         })
             
-            # Ordenar alfabéticamente por namespace
+            # Ordenar simplemente por namespace
             deployments_list.sort(key=lambda x: x['namespace'])
         else:
             error_msg = "No se pudo obtener la lista de servicios (kubectl devolvió vacío o falló)."
