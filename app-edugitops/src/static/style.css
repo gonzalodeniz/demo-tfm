@@ -77,3 +77,28 @@ body {
     border-color: #ffecb3 !important;      /* Borde sutilmente más oscuro */
     transition: background-color 0.5s ease, border-color 0.5s ease;
 }
+
+/* --- ESTILOS DEL EDITOR YAML --- */
+.yaml-editor {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    
+    /* Altura forzada: 80% del alto de la ventana */
+    min-height: 80vh !important;
+    height: 80vh !important;
+    
+    white-space: pre;
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+    border: 1px solid #444;
+    border-radius: 5px;
+    
+    /* Permitir redimensionar verticalmente */
+    resize: vertical;
+    outline: none;
+}
+
+.yaml-editor:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}

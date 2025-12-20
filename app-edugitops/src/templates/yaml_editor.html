@@ -6,20 +6,9 @@
     <title>Editor YAML - EduGitOps</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <style>
-        .yaml-editor {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            /* CAMBIO: Aumentado de 60vh a 75vh para mayor altura inicial */
-            min-height: 75vh; 
-            white-space: pre;
-            background-color: #2d2d2d;
-            color: #f8f8f2;
-            border: 1px solid #444;
-            /* CAMBIO: Aseguramos que el usuario pueda redimensionar si quiere */
-            resize: vertical; 
-        }
-    </style>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body class="bg-light">
@@ -35,19 +24,19 @@
         </div>
     </nav>
 
-    <div class="container px-4">
+    <div class="container-fluid px-4">
         <div class="row">
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-body">
-                        <div class="alert alert-info d-flex align-items-center">
+                        <div class="alert alert-info d-flex align-items-center py-2">
                             <i class="bi bi-info-circle-fill me-2"></i>
-                            <div>
-                                Edita con precaución. Al guardar, se validarán duplicados, existencia de apps en catálogo y formato de URLs.
+                            <div class="small">
+                                Edita con precaución. Se validarán duplicados y sintaxis YAML al guardar.
                             </div>
                         </div>
 
-                        <textarea id="yaml-content" class="form-control yaml-editor p-3" spellcheck="false">{{ raw_content }}</textarea>
+                        <textarea id="yaml-content" class="yaml-editor p-3 w-100" spellcheck="false">{{ raw_content }}</textarea>
 
                         <div class="d-flex justify-content-end mt-3 gap-2">
                             <a href="{{ url_for('main.index') }}" class="btn btn-light border">Cancelar</a>
