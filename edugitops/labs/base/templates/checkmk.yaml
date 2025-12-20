@@ -1,18 +1,11 @@
 {{- if has "checkmk" .Values.apps }}
-# --- 1. Namespace (Fijo para Checkmk) ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: checkmk
-  labels:
-    argocd.argoproj.io/instance: checkmk
----
-# --- 2. Deployment ---
+# --- 1. Deployment ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: checkmk
-  namespace: checkmk
+  # CAMBIO: Namespace dinámico según el alumno
+  namespace: {{ .Values.nombre }}
   labels:
     app: checkmk
 spec:
@@ -47,7 +40,7 @@ spec:
               memory: "512Mi"
               cpu: "300m"
             limits:
-              # IGUALADO AL QUE FUNCIONA (stack_checkmk.yaml)
+              # Mantenemos los límites que indicaste que funcionan
               memory: "2Gi"   
               cpu: "1000m"
 
@@ -55,7 +48,7 @@ spec:
             - name: data
               mountPath: /omd/sites
           
-          # IGUALADO AL QUE FUNCIONA: Usamos path "/" en lugar del script python
+          # Mantenemos las sondas corregidas (path /)
           readinessProbe:
             httpGet:
               path: /
@@ -76,12 +69,13 @@ spec:
         - name: data
           emptyDir: {}
 ---
-# --- 3. Service ---
+# --- 2. Service ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: checkmk
-  namespace: checkmk
+  name: checkmk-service
+  # CAMBIO: Namespace dinámico según el alumno
+  namespace: {{ .Values.nombre }}
   labels:
     app: checkmk
 spec:
