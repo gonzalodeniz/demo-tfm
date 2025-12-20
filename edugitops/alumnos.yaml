@@ -1,16 +1,6 @@
 - nombre: alumno-juan
   id: '001'
   apps:
-  - prometheus
-  - grafana
+  - app-lablight
   check-http:
-  - http://prometheus-service.alumno-juan.svc.cluster.local:9090
-  - http://grafana-service.alumno-juan.svc.cluster.local:3000
-- nombre: alumno-pepe
-  id: '002'
-  apps:
-  - mongodb
-  - mysql
-  check-http:
-  - http://mongodb-service.alumno-pepe.svc.cluster.local:27017
-  - http://mysql-service.alumno-pepe.svc.cluster.local:3306
+  - http://app-lablight-service.alumno-juan.svc.cluster.local:80

@@ -289,3 +289,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 });
+
+// --- FUNCIONALIDAD GLOBAL (Fuera del DOMContentLoaded) ---
+
+// Función para copiar al portapapeles (llamada desde onclick en HTML)
+function copyToClipboard(text) {
+    if (!navigator.clipboard) {
+        // Fallback para navegadores viejos o entornos no seguros (http)
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert("Comando copiado:\n" + text);
+        } catch (err) {
+            console.error('Error al copiar', err);
+        }
+        document.body.removeChild(textArea);
+        return;
+    }
+
+    navigator.clipboard.writeText(text).then(function() {
+        // Puedes cambiar esto por un Toast de Bootstrap si prefieres algo más elegante
+        alert("¡Copiado! Pégalo en tu terminal:\n\n" + text);
+    }, function(err) {
+        console.error('Error al copiar: ', err);
+    });
+}
+
+// --- INICIALIZACIÓN DE TOOLTIPS (Bootstrap) ---
+// Esto sí debe ejecutarse cuando el DOM esté listo.
+// Puedes añadirlo dentro de tu evento existente 'DOMContentLoaded' o dejarlo aquí aparte:
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
