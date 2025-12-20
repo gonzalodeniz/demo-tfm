@@ -1,0 +1,99 @@
+{{- if has "checkmk" .Values.apps }}
+# --- 1. Namespace (Fijo para Checkmk) ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: checkmk
+  labels:
+    # Etiqueta opcional para que ArgoCD sepa que es parte de la gestión
+    argocd.argoproj.io/instance: checkmk
+---
+# --- 2. Deployment ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkmk
+  namespace: checkmk
+  labels:
+    app: checkmk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkmk
+  template:
+    metadata:
+      labels:
+        app: checkmk
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: checkmk
+          image: checkmk/check-mk-raw:2.4.0p16
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: CMK_SITE_ID
+              value: cmk
+            - name: CMK_PASSWORD
+              value: "admin123"
+          ports:
+            - containerPort: 5000
+              name: http
+            - containerPort: 6557
+              name: livestatus
+          
+          # Recursos ajustados para estabilidad
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "300m"
+            limits:
+              memory: "1.5Gi"
+              cpu: "1000m"
+
+          volumeMounts:
+            - name: data
+              mountPath: /omd/sites
+          
+          # Probes pacientes para evitar reinicios
+          readinessProbe:
+            httpGet:
+              path: /cmk/check_mk/login.py
+              port: 5000
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /cmk/check_mk/login.py
+              port: 5000
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 10
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+# --- 3. Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkmk
+  namespace: checkmk
+  labels:
+    app: checkmk
+spec:
+  type: NodePort
+  selector:
+    app: checkmk
+  ports:
+    - name: http
+      port: 80
+      targetPort: 5000
+    - name: livestatus
+      port: 6557
+      targetPort: 6557
+{{- end }}
