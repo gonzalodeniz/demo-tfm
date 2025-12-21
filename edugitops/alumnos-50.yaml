@@ -1,0 +1,300 @@
+- nombre: alumno-juan
+  id: '001'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-juan.svc.cluster.local:80
+- nombre: alumno-ana
+  id: '002'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-ana.svc.cluster.local:80
+- nombre: alumno-carlos
+  id: '003'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-carlos.svc.cluster.local:80
+- nombre: alumno-maria
+  id: '004'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-maria.svc.cluster.local:80
+- nombre: alumno-luis
+  id: '005'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-luis.svc.cluster.local:80
+- nombre: alumno-sofia
+  id: '006'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-sofia.svc.cluster.local:80
+- nombre: alumno-pedro
+  id: '007'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-pedro.svc.cluster.local:80
+- nombre: alumno-laura
+  id: '008'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-laura.svc.cluster.local:80
+- nombre: alumno-diego
+  id: '009'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-diego.svc.cluster.local:80
+- nombre: alumno-elena
+  id: '010'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-elena.svc.cluster.local:80
+- nombre: alumno-jorge
+  id: '011'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-jorge.svc.cluster.local:80
+- nombre: alumno-carmen
+  id: '012'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-carmen.svc.cluster.local:80
+- nombre: alumno-miguel
+  id: '013'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-miguel.svc.cluster.local:80
+- nombre: alumno-paula
+  id: '014'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-paula.svc.cluster.local:80
+- nombre: alumno-javier
+  id: '015'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-javier.svc.cluster.local:80
+- nombre: alumno-isabel
+  id: '016'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-isabel.svc.cluster.local:80
+- nombre: alumno-antonio
+  id: '017'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-antonio.svc.cluster.local:80
+- nombre: alumno-lucia
+  id: '018'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-lucia.svc.cluster.local:80
+- nombre: alumno-raul
+  id: '019'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-raul.svc.cluster.local:80
+- nombre: alumno-marta
+  id: '020'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-marta.svc.cluster.local:80
+- nombre: alumno-fernando
+  id: '021'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-fernando.svc.cluster.local:80
+- nombre: alumno-andrea
+  id: '022'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-andrea.svc.cluster.local:80
+- nombre: alumno-roberto
+  id: '023'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-roberto.svc.cluster.local:80
+- nombre: alumno-cristina
+  id: '024'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-cristina.svc.cluster.local:80
+- nombre: alumno-alberto
+  id: '025'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-alberto.svc.cluster.local:80
+- nombre: alumno-beatriz
+  id: '026'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-beatriz.svc.cluster.local:80
+- nombre: alumno-sergio
+  id: '027'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-sergio.svc.cluster.local:80
+- nombre: alumno-patricia
+  id: '028'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-patricia.svc.cluster.local:80
+- nombre: alumno-daniel
+  id: '029'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-daniel.svc.cluster.local:80
+- nombre: alumno-rocio
+  id: '030'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-rocio.svc.cluster.local:80
+- nombre: alumno-victor
+  id: '031'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-victor.svc.cluster.local:80
+- nombre: alumno-silvia
+  id: '032'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-silvia.svc.cluster.local:80
+- nombre: alumno-ivan
+  id: '033'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-ivan.svc.cluster.local:80
+- nombre: alumno-monica
+  id: '034'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-monica.svc.cluster.local:80
+- nombre: alumno-adrian
+  id: '035'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-adrian.svc.cluster.local:80
+- nombre: alumno-sandra
+  id: '036'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-sandra.svc.cluster.local:80
+- nombre: alumno-ramon
+  id: '037'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-ramon.svc.cluster.local:80
+- nombre: alumno-natalia
+  id: '038'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-natalia.svc.cluster.local:80
+- nombre: alumno-oscar
+  id: '039'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-oscar.svc.cluster.local:80
+- nombre: alumno-raquel
+  id: '040'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-raquel.svc.cluster.local:80
+- nombre: alumno-manuel
+  id: '041'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-manuel.svc.cluster.local:80
+- nombre: alumno-teresa
+  id: '042'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-teresa.svc.cluster.local:80
+- nombre: alumno-enrique
+  id: '043'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-enrique.svc.cluster.local:80
+- nombre: alumno-gloria
+  id: '044'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-gloria.svc.cluster.local:80
+- nombre: alumno-pablo
+  id: '045'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-pablo.svc.cluster.local:80
+- nombre: alumno-eva
+  id: '046'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-eva.svc.cluster.local:80
+- nombre: alumno-francisco
+  id: '047'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-francisco.svc.cluster.local:80
+- nombre: alumno-pilar
+  id: '048'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-pilar.svc.cluster.local:80
+- nombre: alumno-angel
+  id: '049'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-angel.svc.cluster.local:80
+- nombre: alumno-alicia
+  id: '050'
+  apps:
+  - app-lablight
+  check-http:
+  - http://app-lablight-service.alumno-alicia.svc.cluster.local:80
